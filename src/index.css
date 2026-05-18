@@ -11,9 +11,13 @@
   --surface: #eef2f5;
   --primary: #021859;
   --primary-foreground: #ffffff;
+  --brand-red: #D90404;
   --accent: #CDA96A;
   --warning: #F2E416;
+  --warning-foreground: #1a1400;
   --destructive: #D90404;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
   --text: #011640;
   --text-muted: #636e72;
   
@@ -27,11 +31,15 @@
   /* CBMRS Inspired Palette - Dark Mode */
   --bg: #011640;
   --surface: #011640;
-  --primary: #D90404;
+  --primary: #021859;
   --primary-foreground: #ffffff;
+  --brand-red: #D90404;
   --accent: #CDA96A;
   --warning: #F2E416;
+  --warning-foreground: #1a1400;
   --destructive: #D90404;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
   --text: #f1f2f6;
   --text-muted: #a4b0be;
 
@@ -143,7 +151,7 @@
 
 /* Concept Colors from Palette */
 .concept-excelente { background-color: #021859; color: white; }
-.concept-muito-bom { background-color: #021859; color: white; opacity: 0.9; }
+.concept-muito-bom { background-color: #0d2d8a; color: white; }
 .concept-bom { background-color: #CDA96A; color: white; }
 .concept-regular { background-color: #F2E416; color: #011640; }
 .concept-insuficiente { background-color: #D90404; color: white; }
@@ -192,6 +200,10 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);

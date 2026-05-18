@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -123,32 +123,32 @@ export default function App() {
     const swVal = includeSwim ? parseFloat(swimValue) : undefined;
 
     if (!upperBodyValue || isNaN(ubVal) || ubVal <= 0) {
-      errors.upperBody = 'Campo obrigatório.';
+      errors.upperBody = 'Campo obrigatÃ³rio.';
     } else if (ubVal > 250) {
-      warnings.upperBody = 'Valor acima do esperado — verifique a unidade.';
+      warnings.upperBody = 'Valor acima do esperado â€” verifique a unidade.';
     }
 
     if (!abdominalValue || isNaN(abdVal) || abdVal <= 0) {
-      errors.abdominal = 'Campo obrigatório.';
+      errors.abdominal = 'Campo obrigatÃ³rio.';
     } else if (abdVal > 150) {
-      warnings.abdominal = 'Valor acima do esperado — verifique.';
+      warnings.abdominal = 'Valor acima do esperado â€” verifique.';
     }
 
     if (!runValue || isNaN(runVal) || runVal <= 0) {
-      errors.run = 'Campo obrigatório.';
+      errors.run = 'Campo obrigatÃ³rio.';
     } else if (runVal < 500) {
-      warnings.run = 'Distância abaixo de 500m — verifique a unidade (use metros).';
+      warnings.run = 'DistÃ¢ncia abaixo de 500m â€” verifique a unidade (use metros).';
     } else if (runVal > 6000) {
-      warnings.run = 'Distância acima do esperado para 12 minutos.';
+      warnings.run = 'DistÃ¢ncia acima do esperado para 12 minutos.';
     }
 
     if (includeSwim) {
       if (!swimValue || swVal === undefined || isNaN(swVal) || swVal <= 0) {
-        errors.swim = 'Informe o tempo ou desmarque Natação.';
+        errors.swim = 'Informe o tempo ou desmarque NataÃ§Ã£o.';
       } else if (swVal < 15) {
-        warnings.swim = 'Tempo muito baixo para 50m — verifique.';
+        warnings.swim = 'Tempo muito baixo para 50m â€” verifique.';
       } else if (swVal > 600) {
-        warnings.swim = 'Tempo acima do esperado — verifique a unidade (use segundos).';
+        warnings.swim = 'Tempo acima do esperado â€” verifique a unidade (use segundos).';
       }
     }
 
@@ -196,7 +196,27 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto transition-colors duration-300">
+    <main className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto transition-colors duration-300">
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {Object.values(fieldErrors).join('. ')}
+      </div>
+
+      {/* Cabeçalho de identificação — visível apenas na impressão */}
+      <div className="hidden print:block mb-6 pb-4" style={{ borderBottom: '2px solid #021859' }}>
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#021859' }}>Corpo de Bombeiros Militar do Rio Grande do Sul</p>
+            <p className="text-xl font-black uppercase tracking-widest" style={{ color: '#021859' }}>TAF CBMRS</p>
+            <p className="text-xs text-gray-500">Teste de Aptidão Física — Resultado Oficial</p>
+          </div>
+          <div className="text-right text-xs text-gray-700 space-y-0.5">
+            <p><span className="font-semibold">Data do TAF:</span>{' '}{testDate ? new Date(testDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</p>
+            <p><span className="font-semibold">Idade:</span>{' '}{age} anos</p>
+            <p><span className="font-semibold">Sexo:</span>{' '}{sex === 'M' ? 'Masculino' : sex === 'F' ? 'Feminino' : '—'}</p>
+          </div>
+        </div>
+      </div>
+
       <header className="mb-12 flex flex-col items-center relative print:hidden">
         <div className="absolute top-0 right-0 flex items-center gap-2">
           <Button
@@ -204,7 +224,7 @@ export default function App() {
             size="icon"
             onClick={() => setIsModalOpen(true)}
             className="nm-btn w-10 h-10 rounded-full"
-            aria-label="Ver tabelas de referência"
+            aria-label="Ver tabelas de referÃªncia"
           >
             <TableIcon className="w-4 h-4" />
           </Button>
@@ -231,8 +251,8 @@ export default function App() {
             <h1 className="text-4xl font-black tracking-tighter uppercase text-[var(--primary)]">
               TAF <span className="text-[var(--accent)]">CBMRS</span>
             </h1>
-            <p className="text-sm font-medium opacity-60 uppercase tracking-[0.2em]">
-              Calculadora de Aptidão Física
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em]">
+              Calculadora de AptidÃ£o FÃ­sica
             </p>
           </div>
         </motion.div>
@@ -243,10 +263,10 @@ export default function App() {
         <Card className="nm-card border-none overflow-hidden print:hidden">
           <CardHeader className="pb-4 border-b border-white/10">
             <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
-              <User className="w-4 h-4" /> Identificação do Militar
+              <User className="w-4 h-4" /> IdentificaÃ§Ã£o do Militar
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-6 pt-6">
+          <CardContent className="grid md:grid-cols-4 gap-6 pt-6">
             <div className="space-y-3">
               <Label htmlFor="sex" className="technical-header ml-1">Sexo</Label>
               <div className="nm-inset p-1">
@@ -274,6 +294,18 @@ export default function App() {
               </div>
             </div>
             <div className="space-y-3">
+              <Label htmlFor="testDate" className="technical-header ml-1">Data do TAF</Label>
+              <div className="nm-inset">
+                <Input
+                  id="testDate"
+                  type="date"
+                  value={testDate}
+                  onChange={(e) => setTestDate(e.target.value)}
+                  className="bg-transparent border-none shadow-none focus-visible:ring-0"
+                />
+              </div>
+            </div>
+            <div className="space-y-3">
               <Label htmlFor="age" className="technical-header ml-1">Idade Atual</Label>
               <div className="nm-inset">
                 <Input 
@@ -289,7 +321,7 @@ export default function App() {
             </div>
           </CardContent>
           <CardFooter className="bg-black/5 dark:bg-white/5 py-3 px-6 flex justify-between items-center">
-            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Faixa Etária</span>
+            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Faixa EtÃ¡ria</span>
             <span className="text-xs font-black text-[var(--primary)] uppercase">{ageGroup}</span>
           </CardFooter>
         </Card>
@@ -299,7 +331,7 @@ export default function App() {
           <Card className="nm-card border-none">
             <CardHeader className="pb-4 border-b border-white/10">
               <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
-                <Dumbbell className="w-4 h-4" /> Testes de Força
+                <Dumbbell className="w-4 h-4" /> Testes de ForÃ§a
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
@@ -318,14 +350,14 @@ export default function App() {
                     className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                   />
                 </div>
-                {fieldErrors.upperBody && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.upperBody}</p>}
-                {!fieldErrors.upperBody && fieldWarnings.upperBody && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.upperBody}</p>}
+                {fieldErrors.upperBody && <p className="text-xs text-destructive mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.upperBody}</p>}
+                {!fieldErrors.upperBody && fieldWarnings.upperBody && <p className="text-xs text-warning mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.upperBody}</p>}
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-1">
                   <Label htmlFor="abdominal" className="technical-header">Abdominal Remador</Label>
-                  <InfoTooltip text="Repetições em 1 minuto." />
+                  <InfoTooltip text="RepetiÃ§Ãµes em 1 minuto." />
                 </div>
                 <div className={`nm-inset${fieldErrors.abdominal ? ' border border-red-400/60' : ''}`}>
                   <Input 
@@ -337,8 +369,8 @@ export default function App() {
                     className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                   />
                 </div>
-                {fieldErrors.abdominal && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.abdominal}</p>}
-                {!fieldErrors.abdominal && fieldWarnings.abdominal && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.abdominal}</p>}
+                {fieldErrors.abdominal && <p className="text-xs text-destructive mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.abdominal}</p>}
+                {!fieldErrors.abdominal && fieldWarnings.abdominal && <p className="text-xs text-warning mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.abdominal}</p>}
               </div>
             </CardContent>
           </Card>
@@ -346,14 +378,14 @@ export default function App() {
           <Card className="nm-card border-none">
             <CardHeader className="pb-4 border-b border-white/10">
               <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
-                <Activity className="w-4 h-4" /> Resistência
+                <Activity className="w-4 h-4" /> ResistÃªncia
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-1">
                   <Label htmlFor="run" className="technical-header">Corrida 12 min (m)</Label>
-                  <InfoTooltip text="Distância total em metros." />
+                  <InfoTooltip text="DistÃ¢ncia total em metros." />
                 </div>
                 <div className={`nm-inset${fieldErrors.run ? ' border border-red-400/60' : ''}`}>
                   <Input 
@@ -365,8 +397,8 @@ export default function App() {
                     className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                   />
                 </div>
-                {fieldErrors.run && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.run}</p>}
-                {!fieldErrors.run && fieldWarnings.run && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.run}</p>}
+                {fieldErrors.run && <p className="text-xs text-destructive mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.run}</p>}
+                {!fieldErrors.run && fieldWarnings.run && <p className="text-xs text-warning mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.run}</p>}
               </div>
 
               <div className="space-y-4 pt-2">
@@ -378,20 +410,21 @@ export default function App() {
                     className="w-5 h-5 rounded-md border-none nm-btn"
                   />
                   <Label htmlFor="swim-check" className="text-xs font-bold uppercase tracking-widest cursor-pointer text-muted-foreground">
-                    Incluir Natação 50m
+                    Incluir NataÃ§Ã£o 50m
                   </Label>
                 </div>
 
                 <AnimatePresence>
                   {includeSwim && (
                     <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
+                      initial={{ opacity: 0, scaleY: 0 }}
+                      animate={{ opacity: 1, scaleY: 1 }}
+                      exit={{ opacity: 0, scaleY: 0 }}
+                      style={{ transformOrigin: 'top' }}
                       className="space-y-3 overflow-hidden"
                     >
                       <div className="flex items-center justify-between px-1">
-                        <Label htmlFor="swim" className="technical-header">Natação (s)</Label>
+                        <Label htmlFor="swim" className="technical-header">NataÃ§Ã£o (s)</Label>
                         <InfoTooltip text="Tempo em segundos para 50m." />
                       </div>
                       <div className={`nm-inset${fieldErrors.swim ? ' border border-red-400/60' : ''}`}>
@@ -404,8 +437,8 @@ export default function App() {
                           className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                         />
                       </div>
-                      {fieldErrors.swim && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.swim}</p>}
-                      {!fieldErrors.swim && fieldWarnings.swim && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.swim}</p>}
+                      {fieldErrors.swim && <p className="text-xs text-destructive mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.swim}</p>}
+                      {!fieldErrors.swim && fieldWarnings.swim && <p className="text-xs text-warning mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.swim}</p>}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -425,7 +458,7 @@ export default function App() {
             variant="outline" 
             onClick={handleReset} 
             className="nm-btn w-14 h-14 rounded-xl border-none"
-            aria-label="Limpar formulário"
+            aria-label="Limpar formulÃ¡rio"
           >
             <RotateCcw className="w-5 h-5" />
           </Button>
@@ -443,7 +476,7 @@ export default function App() {
               <Card 
                 role="button"
                 tabIndex={0}
-                aria-label="Ver tabelas de referência detalhadas"
+                aria-label="Ver tabelas de referÃªncia detalhadas"
                 className="nm-card border-none overflow-hidden cursor-pointer group relative hover:scale-[1.01] transition-transform duration-300 focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
                 onClick={() => setIsModalOpen(true)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsModalOpen(true); } }}
@@ -458,7 +491,7 @@ export default function App() {
                       <span className="text-6xl font-black tracking-tighter text-[var(--primary)]">
                         {results.final.toFixed(2)}
                       </span>
-                      <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getConceptColor(results.concept)}`}>
+                      <div className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${getConceptColor(results.concept)}`}>
                         {results.concept}
                       </div>
                     </div>
@@ -467,7 +500,7 @@ export default function App() {
                 <CardContent className="p-0 border-t border-white/10">
                   <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10">
                     <div className="p-6 flex flex-col gap-1">
-                      <span className="text-xs uppercase font-bold text-muted-foreground">Força</span>
+                      <span className="text-xs uppercase font-bold text-muted-foreground">ForÃ§a</span>
                       <span className="text-xl font-black technical-value">{results.upperBody.toFixed(1)}</span>
                     </div>
                     <div className="p-6 flex flex-col gap-1">
@@ -480,7 +513,7 @@ export default function App() {
                     </div>
                     {results.swim !== undefined && (
                       <div className="p-6 flex flex-col gap-1">
-                        <span className="text-xs uppercase font-bold text-muted-foreground">Natação</span>
+                        <span className="text-xs uppercase font-bold text-muted-foreground">NataÃ§Ã£o</span>
                         <span className="text-xl font-black technical-value">{results.swim.toFixed(1)}</span>
                       </div>
                     )}
@@ -495,17 +528,17 @@ export default function App() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-black uppercase tracking-widest text-destructive">Reprovado</span>
-                          <span className="text-xs text-muted-foreground">Abaixo da média mínima exigida (5.0)</span>
+                          <span className="text-xs text-muted-foreground">Abaixo da mÃ©dia mÃ­nima exigida (5.0)</span>
                         </div>
                       </>
                     ) : (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                        <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center text-success">
                           <CheckCircle2 className="w-6 h-6" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs font-black uppercase tracking-widest text-emerald-500">Aprovado</span>
-                          <span className="text-xs text-muted-foreground">Conforme Instrução Reguladora 001/2024</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-success">Aprovado</span>
+                          <span className="text-xs text-muted-foreground">Conforme InstruÃ§Ã£o Reguladora 001/2024</span>
                         </div>
                       </>
                     )}
@@ -539,7 +572,7 @@ export default function App() {
             </div>
           </div>
           <p className="leading-relaxed text-center italic">
-            "O desempate conservador arredonda para a pontuação inferior. Resultados abaixo do mínimo resultam em 0,0 pontos."
+            "O desempate conservador arredonda para a pontuaÃ§Ã£o inferior. Resultados abaixo do mÃ­nimo resultam em 0,0 pontos."
           </p>
         </footer>
       </div>
@@ -549,20 +582,20 @@ export default function App() {
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto nm-card border-none p-0">
           <DialogHeader className="p-8 pb-4">
             <DialogTitle className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3 text-[var(--primary)]">
-              <TableIcon className="w-8 h-8" /> Tabelas de Referência
+              <TableIcon className="w-8 h-8" /> Tabelas de ReferÃªncia
             </DialogTitle>
             <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
-              Valores oficiais para pontuação (IR 001/2024)
+              Valores oficiais para pontuaÃ§Ã£o (IR 001/2024)
             </DialogDescription>
           </DialogHeader>
           
           <div className="px-8 pb-8">
             <Tabs defaultValue="upperBody" className="w-full">
               <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8 nm-inset p-1 h-auto">
-                <TabsTrigger value="upperBody" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Força Sup.</TabsTrigger>
+                <TabsTrigger value="upperBody" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">ForÃ§a Sup.</TabsTrigger>
                 <TabsTrigger value="abdominal" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Abdominal</TabsTrigger>
                 <TabsTrigger value="run" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Corrida</TabsTrigger>
-                <TabsTrigger value="swim" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Natação</TabsTrigger>
+                <TabsTrigger value="swim" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">NataÃ§Ã£o</TabsTrigger>
               </TabsList>
               
               <div className="nm-inset p-1 rounded-2xl overflow-hidden">
@@ -595,7 +628,7 @@ export default function App() {
                 
                 <TabsContent value="swim" className="m-0 bg-[var(--surface)] rounded-xl p-4">
                   <ScoringTableDisplay 
-                    title="Natação 50m (Segundos)"
+                    title="NataÃ§Ã£o 50m (Segundos)"
                     table={getSwimTable(sex)}
                     currentPoints={results?.swim ?? 0}
                     ageGroup={ageGroup}
@@ -607,7 +640,7 @@ export default function App() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   );
 }
 
@@ -660,7 +693,7 @@ function ScoringTableDisplay({
                       key={idx} 
                       className={`text-center technical-value text-xs ${idx === ageIndex && isActiveRow ? 'text-[var(--primary)] font-black scale-125' : 'text-muted-foreground'}`}
                     >
-                      {val === 0 ? '-' : (lowerIsBetter ? `≤${val}` : `≥${val}`)}
+                      {val === 0 ? '-' : (lowerIsBetter ? `â‰¤${val}` : `â‰¥${val}`)}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -684,7 +717,7 @@ function InfoTooltip({ text }: { text: string }) {
       <PopoverContent
         side="top"
         align="end"
-        className="w-64 p-4 bg-[var(--text)] text-[var(--bg)] text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-2xl border-none"
+        className="w-64 p-4 bg-[var(--text)] text-[var(--bg)] text-xs font-bold uppercase tracking-widest rounded-xl shadow-2xl border-none"
       >
         {text}
       </PopoverContent>
@@ -695,11 +728,11 @@ function InfoTooltip({ text }: { text: string }) {
 function getUpperBodyHelp(sex: Sex, age: number): string {
   if (sex === 'M') {
     return age <= 39 
-      ? "Pegada em pronação, braços estendidos. Flexionar cotovelos até o queixo passar a barra. Sem embalo."
-      : "Corpo ereto, mãos no solo. Flexionar cotovelos até o nível das escápulas. Tronco retilíneo.";
+      ? "Pegada em pronaÃ§Ã£o, braÃ§os estendidos. Flexionar cotovelos atÃ© o queixo passar a barra. Sem embalo."
+      : "Corpo ereto, mÃ£os no solo. Flexionar cotovelos atÃ© o nÃ­vel das escÃ¡pulas. Tronco retilÃ­neo.";
   } else {
     return age <= 39
-      ? "Pegada em pronação. Manter-se suspensa com o queixo acima da barra pelo maior tempo possível."
-      : "Apoio sobre os joelhos. Flexionar cotovelos até o nível das escápulas. Pés em suspensão.";
+      ? "Pegada em pronaÃ§Ã£o. Manter-se suspensa com o queixo acima da barra pelo maior tempo possÃ­vel."
+      : "Apoio sobre os joelhos. Flexionar cotovelos atÃ© o nÃ­vel das escÃ¡pulas. PÃ©s em suspensÃ£o.";
   }
 }
