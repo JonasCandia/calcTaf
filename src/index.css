@@ -156,6 +156,26 @@
 .concept-regular { background-color: #F2E416; color: #011640; }
 .concept-insuficiente { background-color: #D90404; color: white; }
 
+/* EXCELENTE badge: gold shimmer sweep */
+.badge-excelente::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.42) 50%,
+    transparent 80%
+  );
+  transform: translateX(-150%);
+  animation: badge-shine 0.75s ease-out 0.6s 1 forwards;
+}
+
+@keyframes badge-shine {
+  from { transform: translateX(-150%); }
+  to   { transform: translateX(260%); }
+}
+
 @media print {
   @page { margin: 1.5cm; }
 
@@ -174,6 +194,15 @@
     box-shadow: none !important;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";

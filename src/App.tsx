@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { 
   Calculator, 
   User, 
@@ -23,7 +23,7 @@ import {
   Sun,
   Printer
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, useMotionValueEvent, animate } from 'motion/react';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -58,6 +58,8 @@ import {
 } from './lib/taf-utils';
 import { AGE_GROUPS, ScoringTable } from './constants/taf-data';
 
+const EASE_OUT_QUINT: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 export default function App() {
   const [sex, setSex] = useState<Sex>('M');
   const [age, setAge] = useState<number>(25);
@@ -84,6 +86,24 @@ export default function App() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const resetIconRef = useRef<HTMLSpanElement>(null);
+
+  // Score counter animation
+  const scoreMotionValue = useMotionValue(0);
+  const [displayScore, setDisplayScore] = useState('0.00');
+  useMotionValueEvent(scoreMotionValue, 'change', (v) => setDisplayScore(v.toFixed(2)));
+  useEffect(() => {
+    if (results) {
+      animate(scoreMotionValue, results.final, {
+        duration: 0.8,
+        ease: EASE_OUT_QUINT,
+      });
+    } else {
+      scoreMotionValue.set(0);
+      setDisplayScore('0.00');
+    }
+  }, [results]);
 
   // Theme effect
   useEffect(() => {
@@ -123,32 +143,32 @@ export default function App() {
     const swVal = includeSwim ? parseFloat(swimValue) : undefined;
 
     if (!upperBodyValue || isNaN(ubVal) || ubVal <= 0) {
-      errors.upperBody = 'Campo obrigatÃ³rio.';
+      errors.upperBody = 'Campo obrigatório.';
     } else if (ubVal > 250) {
-      warnings.upperBody = 'Valor acima do esperado â€” verifique a unidade.';
+      warnings.upperBody = 'Valor acima do esperado — verifique a unidade.';
     }
 
     if (!abdominalValue || isNaN(abdVal) || abdVal <= 0) {
-      errors.abdominal = 'Campo obrigatÃ³rio.';
+      errors.abdominal = 'Campo obrigatório.';
     } else if (abdVal > 150) {
-      warnings.abdominal = 'Valor acima do esperado â€” verifique.';
+      warnings.abdominal = 'Valor acima do esperado — verifique.';
     }
 
     if (!runValue || isNaN(runVal) || runVal <= 0) {
-      errors.run = 'Campo obrigatÃ³rio.';
+      errors.run = 'Campo obrigatório.';
     } else if (runVal < 500) {
-      warnings.run = 'DistÃ¢ncia abaixo de 500m â€” verifique a unidade (use metros).';
+      warnings.run = 'Distância abaixo de 500m — verifique a unidade (use metros).';
     } else if (runVal > 6000) {
-      warnings.run = 'DistÃ¢ncia acima do esperado para 12 minutos.';
+      warnings.run = 'Distância acima do esperado para 12 minutos.';
     }
 
     if (includeSwim) {
       if (!swimValue || swVal === undefined || isNaN(swVal) || swVal <= 0) {
-        errors.swim = 'Informe o tempo ou desmarque NataÃ§Ã£o.';
+        errors.swim = 'Informe o tempo ou desmarque Natação.';
       } else if (swVal < 15) {
-        warnings.swim = 'Tempo muito baixo para 50m â€” verifique.';
+        warnings.swim = 'Tempo muito baixo para 50m — verifique.';
       } else if (swVal > 600) {
-        warnings.swim = 'Tempo acima do esperado â€” verifique a unidade (use segundos).';
+        warnings.swim = 'Tempo acima do esperado — verifique a unidade (use segundos).';
       }
     }
 
@@ -182,6 +202,9 @@ export default function App() {
     setResults(null);
     setFieldErrors({});
     setFieldWarnings({});
+    if (resetIconRef.current) {
+      animate(resetIconRef.current, { rotate: [0, -360] }, { duration: 0.5, ease: EASE_OUT_QUINT });
+    }
   };
 
   const getConceptColor = (concept: string) => {
@@ -192,6 +215,17 @@ export default function App() {
       case 'REGULAR': return 'concept-regular';
       case 'INSUFICIENTE': return 'concept-insuficiente';
       default: return 'bg-muted';
+    }
+  };
+
+  const getConceptBadge = (concept: string) => {
+    switch (concept) {
+      case 'EXCELENTE': return 'bg-[var(--accent)] text-[var(--primary)]';
+      case 'MUITO BOM': return 'bg-emerald-400/20 text-emerald-300 ring-1 ring-emerald-400/30';
+      case 'BOM': return 'bg-sky-400/20 text-sky-300 ring-1 ring-sky-400/30';
+      case 'REGULAR': return 'bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/30';
+      case 'INSUFICIENTE': return 'bg-red-500/25 text-red-400 ring-1 ring-red-500/30';
+      default: return 'bg-white/10 text-white/60';
     }
   };
 
@@ -217,14 +251,14 @@ export default function App() {
         </div>
       </div>
 
-      <header className="mb-12 flex flex-col items-center relative print:hidden">
+      <header className="mb-8 md:mb-12 flex flex-col items-center relative print:hidden">
         <div className="absolute top-0 right-0 flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsModalOpen(true)}
             className="nm-btn w-10 h-10 rounded-full"
-            aria-label="Ver tabelas de referÃªncia"
+            aria-label="Ver tabelas de referência"
           >
             <TableIcon className="w-4 h-4" />
           </Button>
@@ -232,41 +266,53 @@ export default function App() {
             variant="ghost" 
             size="icon" 
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="nm-btn w-10 h-10 rounded-full"
+            className="nm-btn w-10 h-10 rounded-full overflow-hidden"
             aria-label={isDarkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
           >
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={isDarkMode ? 'sun' : 'moon'}
+                initial={{ rotate: -30, opacity: 0, scale: 0.6 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: 30, opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.2, ease: EASE_OUT_QUINT }}
+                className="flex items-center justify-center"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </motion.span>
+            </AnimatePresence>
           </Button>
         </div>
         
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center gap-4"
+          transition={{ duration: 0.6, ease: EASE_OUT_QUINT }}
+          className="flex flex-col items-center gap-6 pt-14 md:pt-0"
         >
-          <div className="nm-card p-4 rounded-2xl">
-            <Calculator className="w-10 h-10 text-[var(--primary)]" />
+          <div className="nm-card p-5 rounded-3xl">
+            <Calculator className="w-12 h-12 text-[var(--primary)]" />
           </div>
           <div className="text-center">
-            <h1 className="text-4xl font-black tracking-tighter uppercase text-[var(--primary)]">
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase text-[var(--primary)]">
               TAF <span className="text-[var(--accent)]">CBMRS</span>
             </h1>
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em]">
-              Calculadora de AptidÃ£o FÃ­sica
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.25em] mt-2">
+              Calculadora de Aptidão Física
             </p>
           </div>
         </motion.div>
       </header>
 
-      <div className="grid gap-8">
+      <div className="grid gap-6 md:gap-8">
         {/* Profile Section */}
         <Card className="nm-card border-none overflow-hidden print:hidden">
           <CardHeader className="pb-4 border-b border-white/10">
             <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
-              <User className="w-4 h-4" /> IdentificaÃ§Ã£o do Militar
+              <User className="w-4 h-4" /> Identificação do Militar
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-4 gap-6 pt-6">
+          <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 pt-6">
             <div className="space-y-3">
               <Label htmlFor="sex" className="technical-header ml-1">Sexo</Label>
               <div className="nm-inset p-1">
@@ -321,7 +367,7 @@ export default function App() {
             </div>
           </CardContent>
           <CardFooter className="bg-black/5 dark:bg-white/5 py-3 px-6 flex justify-between items-center">
-            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Faixa EtÃ¡ria</span>
+            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Faixa Etária</span>
             <span className="text-xs font-black text-[var(--primary)] uppercase">{ageGroup}</span>
           </CardFooter>
         </Card>
@@ -331,7 +377,7 @@ export default function App() {
           <Card className="nm-card border-none">
             <CardHeader className="pb-4 border-b border-white/10">
               <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
-                <Dumbbell className="w-4 h-4" /> Testes de ForÃ§a
+                <Dumbbell className="w-4 h-4" /> Testes de Força
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
@@ -357,7 +403,7 @@ export default function App() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-1">
                   <Label htmlFor="abdominal" className="technical-header">Abdominal Remador</Label>
-                  <InfoTooltip text="RepetiÃ§Ãµes em 1 minuto." />
+                  <InfoTooltip text="Repetições em 1 minuto." />
                 </div>
                 <div className={`nm-inset${fieldErrors.abdominal ? ' border border-red-400/60' : ''}`}>
                   <Input 
@@ -378,14 +424,14 @@ export default function App() {
           <Card className="nm-card border-none">
             <CardHeader className="pb-4 border-b border-white/10">
               <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
-                <Activity className="w-4 h-4" /> ResistÃªncia
+                <Activity className="w-4 h-4" /> Resistência
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-1">
                   <Label htmlFor="run" className="technical-header">Corrida 12 min (m)</Label>
-                  <InfoTooltip text="DistÃ¢ncia total em metros." />
+                  <InfoTooltip text="Distância total em metros." />
                 </div>
                 <div className={`nm-inset${fieldErrors.run ? ' border border-red-400/60' : ''}`}>
                   <Input 
@@ -410,21 +456,21 @@ export default function App() {
                     className="w-5 h-5 rounded-md border-none nm-btn"
                   />
                   <Label htmlFor="swim-check" className="text-xs font-bold uppercase tracking-widest cursor-pointer text-muted-foreground">
-                    Incluir NataÃ§Ã£o 50m
+                    Incluir Natação 50m
                   </Label>
                 </div>
 
                 <AnimatePresence>
                   {includeSwim && (
                     <motion.div 
-                      initial={{ opacity: 0, scaleY: 0 }}
-                      animate={{ opacity: 1, scaleY: 1 }}
-                      exit={{ opacity: 0, scaleY: 0 }}
-                      style={{ transformOrigin: 'top' }}
-                      className="space-y-3 overflow-hidden"
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25, ease: EASE_OUT_QUINT }}
+                      className="space-y-3"
                     >
                       <div className="flex items-center justify-between px-1">
-                        <Label htmlFor="swim" className="technical-header">NataÃ§Ã£o (s)</Label>
+                        <Label htmlFor="swim" className="technical-header">Natação (s)</Label>
                         <InfoTooltip text="Tempo em segundos para 50m." />
                       </div>
                       <div className={`nm-inset${fieldErrors.swim ? ' border border-red-400/60' : ''}`}>
@@ -448,102 +494,133 @@ export default function App() {
         </div>
 
         <div className="flex gap-4 print:hidden">
-          <Button 
-            onClick={handleCalculate} 
-            className="flex-1 nm-btn-primary h-14 text-sm font-black uppercase tracking-[0.2em]"
-          >
-            Calcular Resultado <ChevronRight className="w-5 h-5 ml-2" />
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleReset} 
-            className="nm-btn w-14 h-14 rounded-xl border-none"
-            aria-label="Limpar formulÃ¡rio"
-          >
-            <RotateCcw className="w-5 h-5" />
-          </Button>
+          <motion.div className="flex-1" whileTap={{ scale: 0.97 }} transition={{ duration: 0.1, ease: EASE_OUT_QUINT }}>
+            <Button 
+              onClick={handleCalculate} 
+              className="w-full nm-btn-primary h-16 text-sm font-black uppercase tracking-[0.25em]"
+            >
+              Calcular Resultado <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </motion.div>
+          <motion.div whileTap={{ scale: 0.95 }} transition={{ duration: 0.1, ease: EASE_OUT_QUINT }}>
+            <Button 
+              variant="outline" 
+              onClick={handleReset} 
+              className="nm-btn w-14 h-14 rounded-xl border-none"
+              aria-label="Limpar formulário"
+            >
+              <span ref={resetIconRef} className="flex items-center justify-center">
+                <RotateCcw className="w-5 h-5" />
+              </span>
+            </Button>
+          </motion.div>
         </div>
 
         {/* Results Section */}
         <AnimatePresence>
           {results && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="animate-fade-in"
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.97 }}
+              transition={{ duration: 0.5, ease: EASE_OUT_QUINT }}
             >
               <Card 
                 role="button"
                 tabIndex={0}
-                aria-label="Ver tabelas de referÃªncia detalhadas"
-                className="nm-card border-none overflow-hidden cursor-pointer group relative hover:scale-[1.01] transition-transform duration-300 focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
+                aria-label="Ver tabelas de referência detalhadas"
+                className="border-none overflow-hidden cursor-pointer group relative hover:scale-[1.005] transition-transform duration-300 focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-2 !py-0 !gap-0"
+                style={{ background: 'var(--primary)' }}
                 onClick={() => setIsModalOpen(true)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsModalOpen(true); } }}
               >
-                <div className="absolute top-6 right-6 opacity-30 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-60 transition-opacity text-white">
                   <Maximize2 className="w-5 h-5" />
                 </div>
-                <CardHeader className="pb-6">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Score Final</span>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-6xl font-black tracking-tighter text-[var(--primary)]">
-                        {results.final.toFixed(2)}
+
+                {/* Score principal */}
+                <div className="px-6 sm:px-10 pt-8 pb-6">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs font-black uppercase tracking-[0.4em] text-white/40">Score Final TAF</span>
+                    <div className="flex items-end gap-4 flex-wrap">
+                      <span className="text-7xl sm:text-9xl font-black tracking-tighter text-white leading-none">
+                        {displayScore}
                       </span>
-                      <div className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${getConceptColor(results.concept)}`}>
+                      <motion.div
+                        key={results.concept}
+                        initial={{ scale: 0.6, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.35, ease: EASE_OUT_QUINT, delay: 0.15 }}
+                        className={`mb-2 px-4 py-2 rounded-lg text-sm font-black uppercase tracking-widest relative overflow-hidden ${getConceptBadge(results.concept)}${results.concept === 'EXCELENTE' ? ' badge-excelente' : ''}`}
+                      >
                         {results.concept}
-                      </div>
+                      </motion.div>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="p-0 border-t border-white/10">
-                  <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10">
-                    <div className="p-6 flex flex-col gap-1">
-                      <span className="text-xs uppercase font-bold text-muted-foreground">ForÃ§a</span>
-                      <span className="text-xl font-black technical-value">{results.upperBody.toFixed(1)}</span>
+                </div>
+
+                {/* Breakdown por modalidade */}
+                <div className="border-t border-white/10">
+                  <div className={`grid grid-cols-2 ${results.swim !== undefined ? 'md:grid-cols-4' : 'md:grid-cols-3'} divide-x divide-y md:divide-y-0 divide-white/10`}>
+                    <div className="p-4 md:p-6 flex flex-col gap-1">
+                      <span className="text-xs uppercase font-bold text-white/40">Força</span>
+                      <span className="text-xl font-black technical-value text-white">{results.upperBody.toFixed(1)}</span>
                     </div>
-                    <div className="p-6 flex flex-col gap-1">
-                      <span className="text-xs uppercase font-bold text-muted-foreground">Abdominal</span>
-                      <span className="text-xl font-black technical-value">{results.abdominal.toFixed(1)}</span>
+                    <div className="p-4 md:p-6 flex flex-col gap-1">
+                      <span className="text-xs uppercase font-bold text-white/40">Abdominal</span>
+                      <span className="text-xl font-black technical-value text-white">{results.abdominal.toFixed(1)}</span>
                     </div>
-                    <div className="p-6 flex flex-col gap-1">
-                      <span className="text-xs uppercase font-bold text-muted-foreground">Corrida</span>
-                      <span className="text-xl font-black technical-value">{results.run.toFixed(1)}</span>
+                    <div className="p-4 md:p-6 flex flex-col gap-1">
+                      <span className="text-xs uppercase font-bold text-white/40">Corrida</span>
+                      <span className="text-xl font-black technical-value text-white">{results.run.toFixed(1)}</span>
                     </div>
                     {results.swim !== undefined && (
-                      <div className="p-6 flex flex-col gap-1">
-                        <span className="text-xs uppercase font-bold text-muted-foreground">NataÃ§Ã£o</span>
-                        <span className="text-xl font-black technical-value">{results.swim.toFixed(1)}</span>
+                      <div className="p-4 md:p-6 flex flex-col gap-1">
+                        <span className="text-xs uppercase font-bold text-white/40">Natação</span>
+                        <span className="text-xl font-black technical-value text-white">{results.swim.toFixed(1)}</span>
                       </div>
                     )}
                   </div>
-                </CardContent>
-                <CardFooter className="bg-black/5 dark:bg-white/5 p-6">
+                </div>
+
+                {/* Aprovado / Reprovado */}
+                <div className="bg-white/5 p-6">
                   <div className="flex items-center gap-3 w-full">
                     {results.final < 5.0 ? (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center text-destructive">
+                        <motion.div
+                          key={`reprovado-${results.final}`}
+                          className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.4, ease: EASE_OUT_QUINT, delay: 0.5 }}
+                        >
                           <AlertCircle className="w-6 h-6" />
-                        </div>
+                        </motion.div>
                         <div className="flex flex-col">
-                          <span className="text-xs font-black uppercase tracking-widest text-destructive">Reprovado</span>
-                          <span className="text-xs text-muted-foreground">Abaixo da mÃ©dia mÃ­nima exigida (5.0)</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-red-400">Reprovado</span>
+                          <span className="text-xs text-white/40">Abaixo da média mínima exigida (5.0)</span>
                         </div>
                       </>
                     ) : (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center text-success">
+                        <motion.div
+                          key={`aprovado-${results.final}`}
+                          className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.4, ease: EASE_OUT_QUINT, delay: 0.5 }}
+                        >
                           <CheckCircle2 className="w-6 h-6" />
-                        </div>
+                        </motion.div>
                         <div className="flex flex-col">
-                          <span className="text-xs font-black uppercase tracking-widest text-success">Aprovado</span>
-                          <span className="text-xs text-muted-foreground">Conforme InstruÃ§Ã£o Reguladora 001/2024</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Aprovado</span>
+                          <span className="text-xs text-white/40">Conforme Instrução Reguladora 001/2024</span>
                         </div>
                       </>
                     )}
                   </div>
-                </CardFooter>
+                </div>
               </Card>
               <div className="mt-4 flex justify-end print:hidden">
                 <Button
@@ -572,30 +649,30 @@ export default function App() {
             </div>
           </div>
           <p className="leading-relaxed text-center italic">
-            "O desempate conservador arredonda para a pontuaÃ§Ã£o inferior. Resultados abaixo do mÃ­nimo resultam em 0,0 pontos."
+            "O desempate conservador arredonda para a pontuação inferior. Resultados abaixo do mínimo resultam em 0,0 pontos."
           </p>
         </footer>
       </div>
 
       {/* Tables Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto nm-card border-none p-0">
-          <DialogHeader className="p-8 pb-4">
+        <DialogContent className="sm:max-w-3xl lg:max-w-5xl max-h-[90vh] max-sm:max-h-[85dvh] overflow-y-auto nm-card border-none p-0 max-sm:top-auto max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:w-full max-sm:max-w-full max-sm:rounded-b-none max-sm:rounded-t-2xl">
+          <DialogHeader className="p-4 sm:p-8 pb-4">
             <DialogTitle className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3 text-[var(--primary)]">
-              <TableIcon className="w-8 h-8" /> Tabelas de ReferÃªncia
+              <TableIcon className="w-8 h-8" /> Tabelas de Referência
             </DialogTitle>
             <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
-              Valores oficiais para pontuaÃ§Ã£o (IR 001/2024)
+              Valores oficiais para pontuação (IR 001/2024)
             </DialogDescription>
           </DialogHeader>
           
-          <div className="px-8 pb-8">
+          <div className="px-4 sm:px-8 pb-4 sm:pb-8">
             <Tabs defaultValue="upperBody" className="w-full">
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8 nm-inset p-1 h-auto">
-                <TabsTrigger value="upperBody" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">ForÃ§a Sup.</TabsTrigger>
-                <TabsTrigger value="abdominal" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Abdominal</TabsTrigger>
-                <TabsTrigger value="run" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Corrida</TabsTrigger>
-                <TabsTrigger value="swim" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">NataÃ§Ã£o</TabsTrigger>
+              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-4 sm:mb-6 nm-inset p-1 !h-auto">
+                <TabsTrigger value="upperBody" className="text-xs font-black uppercase py-3 data-[active]:nm-btn data-[active]:bg-[var(--surface)]">Força Sup.</TabsTrigger>
+                <TabsTrigger value="abdominal" className="text-xs font-black uppercase py-3 data-[active]:nm-btn data-[active]:bg-[var(--surface)]">Abdominal</TabsTrigger>
+                <TabsTrigger value="run" className="text-xs font-black uppercase py-3 data-[active]:nm-btn data-[active]:bg-[var(--surface)]">Corrida</TabsTrigger>
+                <TabsTrigger value="swim" className="text-xs font-black uppercase py-3 data-[active]:nm-btn data-[active]:bg-[var(--surface)]">Natação</TabsTrigger>
               </TabsList>
               
               <div className="nm-inset p-1 rounded-2xl overflow-hidden">
@@ -628,7 +705,7 @@ export default function App() {
                 
                 <TabsContent value="swim" className="m-0 bg-[var(--surface)] rounded-xl p-4">
                   <ScoringTableDisplay 
-                    title="NataÃ§Ã£o 50m (Segundos)"
+                    title="Natação 50m (Segundos)"
                     table={getSwimTable(sex)}
                     currentPoints={results?.swim ?? 0}
                     ageGroup={ageGroup}
@@ -644,7 +721,7 @@ export default function App() {
   );
 }
 
-function ScoringTableDisplay({ 
+const ScoringTableDisplay = memo(function ScoringTableDisplay({ 
   title, 
   table, 
   currentPoints, 
@@ -663,15 +740,14 @@ function ScoringTableDisplay({
   return (
     <div className="space-y-4">
       <h3 className="font-black uppercase text-xs tracking-widest text-muted-foreground border-b border-white/10 pb-2">{title}</h3>
-      <div className="overflow-x-auto">
-        <Table>
+      <Table>
           <TableHeader>
-            <TableRow className="border-none hover:bg-transparent">
-              <TableHead className="w-20 technical-header">Pts</TableHead>
-              {AGE_GROUPS.map((group, idx) => (
+            <TableRow className="border-none hover:bg-transparent sticky top-0 z-10 bg-[var(--surface)]">
+              <TableHead className="w-16 sm:w-20 technical-header sticky left-0 z-20 bg-[var(--surface)] shadow-[1px_0_0_0_rgba(255,255,255,0.08)]">Pts</TableHead>
+              {AGE_GROUPS.map((group) => (
                 <TableHead 
                   key={group} 
-                  className={`text-center technical-header min-w-[70px] ${group === ageGroup ? 'text-[var(--primary)] font-black' : ''}`}
+                  className={`text-center technical-header min-w-[52px] sm:min-w-[70px] ${group === ageGroup ? 'text-[var(--primary)] font-black bg-[var(--primary)]/5' : ''}`}
                 >
                   {group}
                 </TableHead>
@@ -687,13 +763,13 @@ function ScoringTableDisplay({
                   key={pStr} 
                   className={`border-none hover:bg-white/5 dark:hover:bg-black/5 ${isActiveRow ? 'bg-[var(--primary)]/10' : ''} transition-colors rounded-lg`}
                 >
-                  <TableCell className="technical-value font-black text-xs">{pStr}</TableCell>
+                  <TableCell className={`technical-value font-black text-xs sticky left-0 z-10 shadow-[1px_0_0_0_rgba(255,255,255,0.08)] ${isActiveRow ? 'bg-[var(--primary)]/10' : 'bg-[var(--surface)]'}`}>{pStr}</TableCell>
                   {table[pStr].map((val, idx) => (
                     <TableCell 
                       key={idx} 
-                      className={`text-center technical-value text-xs ${idx === ageIndex && isActiveRow ? 'text-[var(--primary)] font-black scale-125' : 'text-muted-foreground'}`}
+                      className={`text-center technical-value text-xs ${idx === ageIndex ? (isActiveRow ? 'text-[var(--primary)] font-black' : 'text-[var(--primary)]/60') : 'text-muted-foreground'}`}
                     >
-                      {val === 0 ? '-' : (lowerIsBetter ? `â‰¤${val}` : `â‰¥${val}`)}
+                      {val === 0 ? '-' : (lowerIsBetter ? `≤${val}` : `≥${val}`)}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -701,18 +777,15 @@ function ScoringTableDisplay({
             })}
           </TableBody>
         </Table>
-      </div>
     </div>
   );
-}
+});
 
 function InfoTooltip({ text }: { text: string }) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <button className="p-3 -m-3 opacity-40 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:rounded transition-opacity">
-          <Info className="w-3 h-3" />
-        </button>
+      <PopoverTrigger className="p-4 -m-4 opacity-40 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:rounded transition-opacity">
+        <Info className="w-3 h-3" />
       </PopoverTrigger>
       <PopoverContent
         side="top"
@@ -728,11 +801,11 @@ function InfoTooltip({ text }: { text: string }) {
 function getUpperBodyHelp(sex: Sex, age: number): string {
   if (sex === 'M') {
     return age <= 39 
-      ? "Pegada em pronaÃ§Ã£o, braÃ§os estendidos. Flexionar cotovelos atÃ© o queixo passar a barra. Sem embalo."
-      : "Corpo ereto, mÃ£os no solo. Flexionar cotovelos atÃ© o nÃ­vel das escÃ¡pulas. Tronco retilÃ­neo.";
+      ? "Pegada em pronação, braços estendidos. Flexionar cotovelos até o queixo passar a barra. Sem embalo."
+      : "Corpo ereto, mãos no solo. Flexionar cotovelos até o nível das escápulas. Tronco retilíneo.";
   } else {
     return age <= 39
-      ? "Pegada em pronaÃ§Ã£o. Manter-se suspensa com o queixo acima da barra pelo maior tempo possÃ­vel."
-      : "Apoio sobre os joelhos. Flexionar cotovelos atÃ© o nÃ­vel das escÃ¡pulas. PÃ©s em suspensÃ£o.";
+      ? "Pegada em pronação. Manter-se suspensa com o queixo acima da barra pelo maior tempo possível."
+      : "Apoio sobre os joelhos. Flexionar cotovelos até o nível das escápulas. Pés em suspensão.";
   }
 }
