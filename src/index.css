@@ -63,6 +63,11 @@
   box-shadow: var(--nm-shadow-in);
   border-radius: 12px;
   border: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.nm-inset:focus-within {
+  box-shadow: var(--nm-shadow-in), 0 0 0 2px var(--primary);
 }
 
 .nm-btn {
@@ -87,6 +92,11 @@
   box-shadow: var(--nm-shadow-in);
 }
 
+.nm-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .nm-btn-primary {
   background: var(--primary);
   color: var(--primary-foreground);
@@ -105,10 +115,15 @@
   box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+.nm-btn-primary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* Custom Utilities */
 .technical-header {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -132,6 +147,25 @@
 .concept-bom { background-color: #CDA96A; color: white; }
 .concept-regular { background-color: #F2E416; color: #011640; }
 .concept-insuficiente { background-color: #D90404; color: white; }
+
+@media print {
+  @page { margin: 1.5cm; }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .nm-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: white !important;
+  }
+
+  .nm-inset, .nm-btn, .nm-btn-primary {
+    box-shadow: none !important;
+  }
+}
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";

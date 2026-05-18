@@ -20,7 +20,8 @@ import {
   Table as TableIcon,
   Maximize2,
   Moon,
-  Sun
+  Sun,
+  Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -31,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   Dialog, 
@@ -67,6 +69,9 @@ export default function App() {
   const [runValue, setRunValue] = useState<string>('');
   const [includeSwim, setIncludeSwim] = useState<boolean>(false);
   const [swimValue, setSwimValue] = useState<string>('');
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldWarnings, setFieldWarnings] = useState<Record<string, string>>({});
 
   const [results, setResults] = useState<{
     upperBody: number;
@@ -109,10 +114,48 @@ export default function App() {
   const upperBodyTestLabel = useMemo(() => getUpperBodyTest(sex, age), [sex, age]);
 
   const handleCalculate = () => {
-    const ubVal = parseFloat(upperBodyValue) || 0;
-    const abdVal = parseFloat(abdominalValue) || 0;
-    const runVal = parseFloat(runValue) || 0;
-    const swVal = includeSwim ? (parseFloat(swimValue) || 0) : undefined;
+    const errors: Record<string, string> = {};
+    const warnings: Record<string, string> = {};
+
+    const ubVal = parseFloat(upperBodyValue);
+    const abdVal = parseFloat(abdominalValue);
+    const runVal = parseFloat(runValue);
+    const swVal = includeSwim ? parseFloat(swimValue) : undefined;
+
+    if (!upperBodyValue || isNaN(ubVal) || ubVal <= 0) {
+      errors.upperBody = 'Campo obrigatório.';
+    } else if (ubVal > 250) {
+      warnings.upperBody = 'Valor acima do esperado — verifique a unidade.';
+    }
+
+    if (!abdominalValue || isNaN(abdVal) || abdVal <= 0) {
+      errors.abdominal = 'Campo obrigatório.';
+    } else if (abdVal > 150) {
+      warnings.abdominal = 'Valor acima do esperado — verifique.';
+    }
+
+    if (!runValue || isNaN(runVal) || runVal <= 0) {
+      errors.run = 'Campo obrigatório.';
+    } else if (runVal < 500) {
+      warnings.run = 'Distância abaixo de 500m — verifique a unidade (use metros).';
+    } else if (runVal > 6000) {
+      warnings.run = 'Distância acima do esperado para 12 minutos.';
+    }
+
+    if (includeSwim) {
+      if (!swimValue || swVal === undefined || isNaN(swVal) || swVal <= 0) {
+        errors.swim = 'Informe o tempo ou desmarque Natação.';
+      } else if (swVal < 15) {
+        warnings.swim = 'Tempo muito baixo para 50m — verifique.';
+      } else if (swVal > 600) {
+        warnings.swim = 'Tempo acima do esperado — verifique a unidade (use segundos).';
+      }
+    }
+
+    setFieldErrors(errors);
+    setFieldWarnings(warnings);
+
+    if (Object.keys(errors).length > 0) return;
 
     const ubPoints = calculatePoints(ubVal, ageGroup, getUpperBodyTable(sex, age));
     const abdPoints = calculatePoints(abdVal, ageGroup, getAbdominalTable(sex));
@@ -137,6 +180,8 @@ export default function App() {
     setRunValue('');
     setSwimValue('');
     setResults(null);
+    setFieldErrors({});
+    setFieldWarnings({});
   };
 
   const getConceptColor = (concept: string) => {
@@ -152,13 +197,23 @@ export default function App() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto transition-colors duration-300">
-      <header className="mb-12 flex flex-col items-center relative">
-        <div className="absolute top-0 right-0">
+      <header className="mb-12 flex flex-col items-center relative print:hidden">
+        <div className="absolute top-0 right-0 flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsModalOpen(true)}
+            className="nm-btn w-10 h-10 rounded-full"
+            aria-label="Ver tabelas de referência"
+          >
+            <TableIcon className="w-4 h-4" />
+          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="nm-btn w-10 h-10 rounded-full"
+            aria-label={isDarkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
           >
             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </Button>
@@ -185,9 +240,9 @@ export default function App() {
 
       <div className="grid gap-8">
         {/* Profile Section */}
-        <Card className="nm-card border-none overflow-hidden">
+        <Card className="nm-card border-none overflow-hidden print:hidden">
           <CardHeader className="pb-4 border-b border-white/10">
-            <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest opacity-70">
+            <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
               <User className="w-4 h-4" /> Identificação do Militar
             </CardTitle>
           </CardHeader>
@@ -234,16 +289,16 @@ export default function App() {
             </div>
           </CardContent>
           <CardFooter className="bg-black/5 dark:bg-white/5 py-3 px-6 flex justify-between items-center">
-            <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold">Faixa Etária</span>
+            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Faixa Etária</span>
             <span className="text-xs font-black text-[var(--primary)] uppercase">{ageGroup}</span>
           </CardFooter>
         </Card>
 
         {/* Tests Section */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 print:hidden">
           <Card className="nm-card border-none">
             <CardHeader className="pb-4 border-b border-white/10">
-              <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest opacity-70">
+              <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
                 <Dumbbell className="w-4 h-4" /> Testes de Força
               </CardTitle>
             </CardHeader>
@@ -253,16 +308,18 @@ export default function App() {
                   <Label htmlFor="upperBody" className="technical-header">{upperBodyTestLabel}</Label>
                   <InfoTooltip text={getUpperBodyHelp(sex, age)} />
                 </div>
-                <div className="nm-inset">
+                <div className={`nm-inset${fieldErrors.upperBody ? ' border border-red-400/60' : ''}`}>
                   <Input 
                     id="upperBody" 
                     type="number" 
                     placeholder="0" 
                     value={upperBodyValue}
-                    onChange={(e) => setUpperBodyValue(e.target.value)}
+                    onChange={(e) => { setUpperBodyValue(e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.upperBody; return n; }); }}
                     className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                   />
                 </div>
+                {fieldErrors.upperBody && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.upperBody}</p>}
+                {!fieldErrors.upperBody && fieldWarnings.upperBody && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.upperBody}</p>}
               </div>
 
               <div className="space-y-3">
@@ -270,23 +327,25 @@ export default function App() {
                   <Label htmlFor="abdominal" className="technical-header">Abdominal Remador</Label>
                   <InfoTooltip text="Repetições em 1 minuto." />
                 </div>
-                <div className="nm-inset">
+                <div className={`nm-inset${fieldErrors.abdominal ? ' border border-red-400/60' : ''}`}>
                   <Input 
                     id="abdominal" 
                     type="number" 
                     placeholder="0" 
                     value={abdominalValue}
-                    onChange={(e) => setAbdominalValue(e.target.value)}
+                    onChange={(e) => { setAbdominalValue(e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.abdominal; return n; }); }}
                     className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                   />
                 </div>
+                {fieldErrors.abdominal && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.abdominal}</p>}
+                {!fieldErrors.abdominal && fieldWarnings.abdominal && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.abdominal}</p>}
               </div>
             </CardContent>
           </Card>
 
           <Card className="nm-card border-none">
             <CardHeader className="pb-4 border-b border-white/10">
-              <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest opacity-70">
+              <CardTitle className="text-xs font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
                 <Activity className="w-4 h-4" /> Resistência
               </CardTitle>
             </CardHeader>
@@ -296,16 +355,18 @@ export default function App() {
                   <Label htmlFor="run" className="technical-header">Corrida 12 min (m)</Label>
                   <InfoTooltip text="Distância total em metros." />
                 </div>
-                <div className="nm-inset">
+                <div className={`nm-inset${fieldErrors.run ? ' border border-red-400/60' : ''}`}>
                   <Input 
                     id="run" 
                     type="number" 
                     placeholder="0" 
                     value={runValue}
-                    onChange={(e) => setRunValue(e.target.value)}
+                    onChange={(e) => { setRunValue(e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.run; return n; }); }}
                     className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                   />
                 </div>
+                {fieldErrors.run && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.run}</p>}
+                {!fieldErrors.run && fieldWarnings.run && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.run}</p>}
               </div>
 
               <div className="space-y-4 pt-2">
@@ -316,7 +377,7 @@ export default function App() {
                     onCheckedChange={(checked) => setIncludeSwim(!!checked)} 
                     className="w-5 h-5 rounded-md border-none nm-btn"
                   />
-                  <Label htmlFor="swim-check" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer opacity-70">
+                  <Label htmlFor="swim-check" className="text-xs font-bold uppercase tracking-widest cursor-pointer text-muted-foreground">
                     Incluir Natação 50m
                   </Label>
                 </div>
@@ -333,16 +394,18 @@ export default function App() {
                         <Label htmlFor="swim" className="technical-header">Natação (s)</Label>
                         <InfoTooltip text="Tempo em segundos para 50m." />
                       </div>
-                      <div className="nm-inset">
+                      <div className={`nm-inset${fieldErrors.swim ? ' border border-red-400/60' : ''}`}>
                         <Input 
                           id="swim" 
                           type="number" 
                           placeholder="0" 
                           value={swimValue}
-                          onChange={(e) => setSwimValue(e.target.value)}
+                          onChange={(e) => { setSwimValue(e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.swim; return n; }); }}
                           className="bg-transparent border-none shadow-none focus-visible:ring-0 technical-value text-lg"
                         />
                       </div>
+                      {fieldErrors.swim && <p className="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldErrors.swim}</p>}
+                      {!fieldErrors.swim && fieldWarnings.swim && <p className="text-xs text-amber-500 mt-1 ml-1 flex items-center gap-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{fieldWarnings.swim}</p>}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -351,7 +414,7 @@ export default function App() {
           </Card>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 print:hidden">
           <Button 
             onClick={handleCalculate} 
             className="flex-1 nm-btn-primary h-14 text-sm font-black uppercase tracking-[0.2em]"
@@ -362,6 +425,7 @@ export default function App() {
             variant="outline" 
             onClick={handleReset} 
             className="nm-btn w-14 h-14 rounded-xl border-none"
+            aria-label="Limpar formulário"
           >
             <RotateCcw className="w-5 h-5" />
           </Button>
@@ -377,15 +441,19 @@ export default function App() {
               className="animate-fade-in"
             >
               <Card 
-                className="nm-card border-none overflow-hidden cursor-pointer group relative hover:scale-[1.01] transition-transform duration-300"
+                role="button"
+                tabIndex={0}
+                aria-label="Ver tabelas de referência detalhadas"
+                className="nm-card border-none overflow-hidden cursor-pointer group relative hover:scale-[1.01] transition-transform duration-300 focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
                 onClick={() => setIsModalOpen(true)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsModalOpen(true); } }}
               >
                 <div className="absolute top-6 right-6 opacity-30 group-hover:opacity-100 transition-opacity">
                   <Maximize2 className="w-5 h-5" />
                 </div>
                 <CardHeader className="pb-6">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Score Final</span>
+                    <span className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Score Final</span>
                     <div className="flex items-baseline gap-3">
                       <span className="text-6xl font-black tracking-tighter text-[var(--primary)]">
                         {results.final.toFixed(2)}
@@ -399,20 +467,20 @@ export default function App() {
                 <CardContent className="p-0 border-t border-white/10">
                   <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10">
                     <div className="p-6 flex flex-col gap-1">
-                      <span className="text-[9px] uppercase font-bold opacity-40">Força</span>
+                      <span className="text-xs uppercase font-bold text-muted-foreground">Força</span>
                       <span className="text-xl font-black technical-value">{results.upperBody.toFixed(1)}</span>
                     </div>
                     <div className="p-6 flex flex-col gap-1">
-                      <span className="text-[9px] uppercase font-bold opacity-40">Abdominal</span>
+                      <span className="text-xs uppercase font-bold text-muted-foreground">Abdominal</span>
                       <span className="text-xl font-black technical-value">{results.abdominal.toFixed(1)}</span>
                     </div>
                     <div className="p-6 flex flex-col gap-1">
-                      <span className="text-[9px] uppercase font-bold opacity-40">Corrida</span>
+                      <span className="text-xs uppercase font-bold text-muted-foreground">Corrida</span>
                       <span className="text-xl font-black technical-value">{results.run.toFixed(1)}</span>
                     </div>
                     {results.swim !== undefined && (
                       <div className="p-6 flex flex-col gap-1">
-                        <span className="text-[9px] uppercase font-bold opacity-40">Natação</span>
+                        <span className="text-xs uppercase font-bold text-muted-foreground">Natação</span>
                         <span className="text-xl font-black technical-value">{results.swim.toFixed(1)}</span>
                       </div>
                     )}
@@ -427,7 +495,7 @@ export default function App() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-black uppercase tracking-widest text-destructive">Reprovado</span>
-                          <span className="text-[10px] opacity-60">Abaixo da média mínima exigida (5.0)</span>
+                          <span className="text-xs text-muted-foreground">Abaixo da média mínima exigida (5.0)</span>
                         </div>
                       </>
                     ) : (
@@ -437,19 +505,30 @@ export default function App() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-black uppercase tracking-widest text-emerald-500">Aprovado</span>
-                          <span className="text-[10px] opacity-60">Conforme Instrução Reguladora 001/2024</span>
+                          <span className="text-xs text-muted-foreground">Conforme Instrução Reguladora 001/2024</span>
                         </div>
                       </>
                     )}
                   </div>
                 </CardFooter>
               </Card>
+              <div className="mt-4 flex justify-end print:hidden">
+                <Button
+                  variant="outline"
+                  onClick={() => window.print()}
+                  className="nm-btn border-none flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
+                  aria-label="Imprimir resultado"
+                >
+                  <Printer className="w-4 h-4" />
+                  Imprimir
+                </Button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <footer className="mt-12 text-[9px] text-muted-foreground space-y-4 border-t border-white/10 pt-8 pb-12">
-          <div className="flex flex-wrap gap-4 justify-between opacity-50">
+        <footer className="mt-12 text-xs text-muted-foreground space-y-4 border-t border-white/10 pt-8 pb-12 print:hidden">
+          <div className="flex flex-wrap gap-4 justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
               <span className="uppercase font-bold tracking-widest">IR 001/2024</span>
@@ -472,7 +551,7 @@ export default function App() {
             <DialogTitle className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3 text-[var(--primary)]">
               <TableIcon className="w-8 h-8" /> Tabelas de Referência
             </DialogTitle>
-            <DialogDescription className="text-[10px] uppercase tracking-widest font-bold opacity-50">
+            <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
               Valores oficiais para pontuação (IR 001/2024)
             </DialogDescription>
           </DialogHeader>
@@ -480,10 +559,10 @@ export default function App() {
           <div className="px-8 pb-8">
             <Tabs defaultValue="upperBody" className="w-full">
               <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8 nm-inset p-1 h-auto">
-                <TabsTrigger value="upperBody" className="text-[10px] font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Força Sup.</TabsTrigger>
-                <TabsTrigger value="abdominal" className="text-[10px] font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Abdominal</TabsTrigger>
-                <TabsTrigger value="run" className="text-[10px] font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Corrida</TabsTrigger>
-                <TabsTrigger value="swim" className="text-[10px] font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Natação</TabsTrigger>
+                <TabsTrigger value="upperBody" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Força Sup.</TabsTrigger>
+                <TabsTrigger value="abdominal" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Abdominal</TabsTrigger>
+                <TabsTrigger value="run" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Corrida</TabsTrigger>
+                <TabsTrigger value="swim" className="text-xs font-black uppercase py-3 data-[state=active]:nm-btn data-[state=active]:bg-[var(--surface)]">Natação</TabsTrigger>
               </TabsList>
               
               <div className="nm-inset p-1 rounded-2xl overflow-hidden">
@@ -550,7 +629,7 @@ function ScoringTableDisplay({
 
   return (
     <div className="space-y-4">
-      <h3 className="font-black uppercase text-[10px] tracking-widest opacity-50 border-b border-white/10 pb-2">{title}</h3>
+      <h3 className="font-black uppercase text-xs tracking-widest text-muted-foreground border-b border-white/10 pb-2">{title}</h3>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -579,7 +658,7 @@ function ScoringTableDisplay({
                   {table[pStr].map((val, idx) => (
                     <TableCell 
                       key={idx} 
-                      className={`text-center technical-value text-[10px] ${idx === ageIndex && isActiveRow ? 'text-[var(--primary)] font-black scale-125' : 'opacity-60'}`}
+                      className={`text-center technical-value text-xs ${idx === ageIndex && isActiveRow ? 'text-[var(--primary)] font-black scale-125' : 'text-muted-foreground'}`}
                     >
                       {val === 0 ? '-' : (lowerIsBetter ? `≤${val}` : `≥${val}`)}
                     </TableCell>
@@ -595,29 +674,21 @@ function ScoringTableDisplay({
 }
 
 function InfoTooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false);
   return (
-    <div className="relative inline-block">
-      <button 
-        onMouseEnter={() => setShow(true)} 
-        onMouseLeave={() => setShow(false)}
-        className="opacity-40 hover:opacity-100 transition-opacity"
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="p-3 -m-3 opacity-40 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:rounded transition-opacity">
+          <Info className="w-3 h-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="end"
+        className="w-64 p-4 bg-[var(--text)] text-[var(--bg)] text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-2xl border-none"
       >
-        <Info className="w-3 h-3" />
-      </button>
-      <AnimatePresence>
-        {show && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="absolute bottom-full right-0 mb-2 w-64 p-4 bg-[var(--text)] text-[var(--bg)] text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-2xl z-50 pointer-events-none"
-          >
-            {text}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+        {text}
+      </PopoverContent>
+    </Popover>
   );
 }
 
