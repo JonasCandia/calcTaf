@@ -506,7 +506,7 @@ export default function App() {
             <Button 
               variant="outline" 
               onClick={handleReset} 
-              className="nm-btn w-14 h-14 rounded-xl border-none"
+              className="nm-btn w-14 h-16 rounded-xl border-none"
               aria-label="Limpar formulário"
             >
               <span ref={resetIconRef} className="flex items-center justify-center">
@@ -530,7 +530,7 @@ export default function App() {
                 tabIndex={0}
                 aria-label="Ver tabelas de referência detalhadas"
                 className="border-none overflow-hidden cursor-pointer group relative hover:scale-[1.005] transition-transform duration-300 focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-2 !py-0 !gap-0"
-                style={{ background: 'var(--primary)' }}
+                style={{ background: '#021859' }}
                 onClick={() => setIsModalOpen(true)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsModalOpen(true); } }}
               >
