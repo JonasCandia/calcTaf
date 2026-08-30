@@ -32,6 +32,11 @@ Para instruções operacionais de como o agente (Claude) deve trabalhar neste re
 ### 04 — Mobile
 - [[Visão Geral do Projeto Mobile]]
 - [[ADR-001 KMP vs Codebases Separadas]]
+- [[Decisões UX Web → Mobile]]
+- [[Escopo do MVP Mobile]]
+- [[Tokens Visuais]]
+- [[Estrutura do Repositório Mobile]]
+- [[Convenções de Versionamento e Branches]]
 
 ### 05 — Instruções
 - [[Sobre as Instruções do Agente]]

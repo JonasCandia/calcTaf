@@ -6,3 +6,17 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Mobile (Gradle/Kotlin Multiplatform)
+mobile/.gradle/
+mobile/**/build/
+mobile/local.properties
+mobile/.kotlin/
+!mobile/gradle/wrapper/gradle-wrapper.jar
+
+# Mobile (Xcode/iOS)
+mobile/iosApp/**/xcuserdata/
+mobile/iosApp/**/*.xcodeproj/project.xcworkspace/
+mobile/iosApp/**/DerivedData/
+mobile/iosApp/**/Pods/
+mobile/iosApp/**/*.xcworkspace/xcuserdata/

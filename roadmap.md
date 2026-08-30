@@ -61,18 +61,21 @@ A UI **não** será compartilhada (sem Compose Multiplatform para iOS): o app de
 
 **Estimativa: 3-4 dias | Dependências: nenhuma**
 
-- [ ] Mapear 1:1 todas as funcionalidades do web app a partir de `App.tsx`, `taf-utils.ts` e `taf-data.ts`: identificação (sexo, nascimento, data do TAF, idade), testes de força superior (4 variantes), abdominal, corrida 12min, natação 50m opcional, cálculo de pontos, nota final ponderada, conceito, aprovação/reprovação, modal de tabelas, tema claro/escuro, impressão
-- [ ] Documentar as regras de negócio em linguagem de domínio (não código) para servir de especificação neutra de plataforma: faixas etárias, regra de seleção do teste de força (idade ≤39 vs. >39, sexo M/F), fórmula da nota final (`(força + abdominal + 2×corrida) / 4`, ou `/5` com natação), limites do conceito (10.0/8.5/7.0/5.0)
-- [ ] Levantar diferenças inevitáveis de UX web→mobile e decidir tratamento de cada uma:
-  - "Imprimir" (`window.print()`) → não existe em mobile; decidir entre API nativa de impressão (Android Print Framework / `UIPrintInteractionController` no iOS) ou exportação/compartilhamento de PDF via share sheet
-  - Modal de tabelas (Dialog + Tabs) → avaliar Bottom Sheet (Android) / `.sheet` (iOS) com TabView/TabRow nativos
-  - Popover de ajuda (`InfoTooltip`) → avaliar `TooltipBox` (Compose) / `.popover()` (SwiftUI) respeitando toque (sem hover em touch)
-  - Estilo "neumórfico" (`nm-card`, `nm-inset`, `nm-btn`) do CSS atual → adaptar para Material 3 (elevação/tonal surfaces) e HIG (materiais/blur), não replicar 1:1 sombras CSS
-- [ ] Definir MVP mobile = paridade funcional 100% com o web, sem funcionalidades adicionais (ver [Suposições Assumidas](#suposições-assumidas))
-- [ ] Levantar tokens visuais atuais para adaptação (não portar CSS diretamente): cor primária `#021859`, paleta de conceitos (Excelente/Muito Bom/Bom/Regular/Insuficiente), fonte Geist Variable, tracking amplo em uppercase nos rótulos
-- [ ] Decisão arquitetural formal (ver seção acima) — registrar como ADR (Architecture Decision Record) no repositório
-- [ ] Definir estrutura de repositório: monorepo único (`/shared`, `/androidApp`, `/iosApp`) — recomendado para KMP, pois o Gradle já unifica o build do shared com o Android, e o iOS consome o XCFramework gerado
-- [ ] Alinhar nomenclatura de pacote/bundle ID (ex.: `br.rs.cbmrs.taf`) e nome de exibição do app
+- [x] Mapear 1:1 todas as funcionalidades do web app a partir de `App.tsx`, `taf-utils.ts` e `taf-data.ts`: identificação (sexo, nascimento, data do TAF, idade), testes de força superior (4 variantes), abdominal, corrida 12min, natação 50m opcional, cálculo de pontos, nota final ponderada, conceito, aprovação/reprovação, modal de tabelas, tema claro/escuro, impressão — ver `vault/02 - Produto/Funcionalidades Atuais (Web).md`
+- [x] Documentar as regras de negócio em linguagem de domínio (não código) para servir de especificação neutra de plataforma: faixas etárias, regra de seleção do teste de força (idade ≤39 vs. >39, sexo M/F), fórmula da nota final (`(força + abdominal + 2×corrida) / 4`, ou `/5` com natação), limites do conceito (10.0/8.5/7.0/5.0) — ver `vault/03 - Técnico/Regras de Negócio.md`
+- [x] Levantar diferenças inevitáveis de UX web→mobile e decidir tratamento de cada uma — decisões registradas em `vault/04 - Mobile/Decisões UX Web → Mobile.md`:
+  - "Imprimir" (`window.print()`) → PDF nativo + compartilhamento do sistema (Print Framework/Android, `UIGraphicsPDFRenderer`+share sheet/iOS)
+  - Modal de tabelas (Dialog + Tabs) → Bottom Sheet (Android) / `.sheet` (iOS), alinhado ao comportamento que o CSS atual já emula em telas pequenas
+  - Popover de ajuda (`InfoTooltip`) → `TooltipBox` (Compose) / `.popover()` (SwiftUI), acionado por toque
+  - Estilo "neumórfico" → adaptado para Material 3 (tonal elevation) e HIG (materiais), preservando paleta e raios de borda, não a técnica de sombra
+- [x] Definir MVP mobile = paridade funcional 100% com o web, sem funcionalidades adicionais — ver `vault/04 - Mobile/Escopo do MVP Mobile.md`
+- [x] Levantar tokens visuais atuais para adaptação (não portar CSS diretamente) — ver `vault/04 - Mobile/Tokens Visuais.md` (inclui inconsistência encontrada no `--primary` do modo escuro, a confirmar antes de fixar no tema nativo)
+- [x] Decisão arquitetural formal (ver seção acima) — registrada como `vault/04 - Mobile/ADR-001 KMP vs Codebases Separadas.md`
+- [x] Definir estrutura de repositório: monorepo único — ver `vault/04 - Mobile/Estrutura do Repositório Mobile.md`
+- [x] Nome de exibição do app: definido como **"Calc TAF"** (nome neutro, sem usar a sigla "CBMRS" enquanto não houver autorização institucional confirmada — ver `vault/01 - Negócio/Modelo de Negócio.md`)
+- [ ] Bundle ID/package name — decisão adiada para a Fase 2 (Setup); ver alternativa sem dependência institucional em `vault/04 - Mobile/Estrutura do Repositório Mobile.md`
+
+**Fase 1 concluída em 2026-08-30.**
 
 ---
 
@@ -80,14 +83,16 @@ A UI **não** será compartilhada (sem Compose Multiplatform para iOS): o app de
 
 **Estimativa: 2-3 dias | Dependências: Fase 1**
 
-- [ ] **Spike de validação (0,5 dia):** criar projeto KMP mínimo com o template oficial (KMP wizard do JetBrains/Kotlin plugin), confirmar que o build gera com sucesso um `.xcframework` consumível por um projeto Xcode vazio, antes de comprometer o restante do cronograma a essa abordagem
-- [ ] Criar módulo `shared` com source sets `commonMain` (lógica + dados), `androidMain`, `iosMain` (vazios inicialmente — não há necessidade de `expect/actual` já que a lógica não toca APIs de plataforma)
-- [ ] Configurar módulo `androidApp`: Kotlin, Jetpack Compose, Compose Material 3, dependência no módulo `shared`
-- [ ] Configurar projeto `iosApp` (Xcode): SwiftUI, integração do `shared.xcframework` via Swift Package Manager (local package apontando para o output do Gradle) ou via CocoaPods (`Kotlin CocoaPods plugin`) — SPM é preferível por menor atrito de manutenção
-- [ ] Configurar `kotlinx-datetime` no `commonMain` para cálculo de idade (substitui `Date` do JS)
-- [ ] Configurar CI (GitHub Actions): job 1 builda `shared` + testes; job 2 builda Android (APK/AAB debug); job 3 builda iOS (requer runner macOS) — falha em qualquer job bloqueia merge
-- [ ] Definir convenção de versionamento semântico e estratégia de branches (ex.: `main` protegida, PRs obrigatórios)
-- [ ] Preparar tokens de design (cores, tipografia, espaçamento, raio de borda) como constantes compartilháveis conceitualmente (não código compartilhado — Compose Theme de um lado, SwiftUI ColorScheme/Font extensions do outro), documentados uma vez para os dois times usarem como referência
+- [~] **Spike de validação:** projeto KMP mínimo criado (`mobile/shared`) com alvos Android/iOS/JVM — mas **não compilado nesta máquina** (sem JDK 17+, sem Android SDK; Xcode é impossível em Windows). Arquivos prontos para a primeira sincronização real; ver `mobile/SETUP.md`
+- [x] Módulo `shared` criado com source sets `commonMain`/`commonTest` (vazio de lógica de propósito — a lógica real é Fase 3), alvos `jvm()` (testes rápidos), `androidTarget()`, `iosX64`/`iosArm64`/`iosSimulatorArm64`
+- [x] Módulo `androidApp` configurado: Kotlin, Jetpack Compose, Compose Material 3, dependência em `:shared`, tema com os tokens de `vault/04 - Mobile/Tokens Visuais.md`
+- [x] Stubs Swift de referência para o `iosApp` (`CalcTAFApp.swift`, `ContentView.swift`, tokens de cor) — **projeto Xcode real ainda não existe**, só pode ser criado em macOS; passos documentados em `mobile/iosApp/README.md`
+- [ ] `kotlinx-datetime` no `commonMain` — adiado para a Fase 3, junto com o cálculo de idade que vai usá-lo (evita dependência sem uso na Fase 2)
+- [x] CI (GitHub Actions) configurado: job `shared` (testes JVM), job `android` (build debug), job `ios-framework` (build do XCFramework em runner macOS) — `.github/workflows/mobile-ci.yml`
+- [x] Convenção de versionamento semântico e estratégia de branches — `vault/04 - Mobile/Convenções de Versionamento e Branches.md`
+- [x] Tokens de design como constantes compartilháveis conceitualmente — já documentado em `vault/04 - Mobile/Tokens Visuais.md` (Fase 1) e agora também implementado como `Color.kt`/`Theme.kt` (Android) e `Colors.swift` (iOS)
+
+**Fase 2 com arquivos gerados, verificação de build pendente** (ver `mobile/SETUP.md`). Próxima fase: 3 — Migração da Lógica de Negócio (TDD obrigatório, ver `CLAUDE.md`).
 
 ---
 

@@ -25,15 +25,18 @@ D e E podem rodar em paralelo se houver 2 devs.
 
 ## Checklist por fase
 
-### 1. Análise (3-4 dias)
-- [ ] Mapear tudo que o app web faz hoje (formulário, cálculo, tabelas, tema, impressão)
-- [ ] Decidir como tratar o que não existe em mobile: impressão → exportar/compartilhar PDF; modal → bottom sheet/sheet nativo
-- [ ] Confirmar a decisão de arquitetura (KMP) e definir estrutura de repositório
+### 1. Análise (3-4 dias) — ✅ concluída, exceto nomenclatura
+- [x] Mapear tudo que o app web faz hoje (formulário, cálculo, tabelas, tema, impressão) — `vault/02 - Produto/`
+- [x] Decidir como tratar o que não existe em mobile: impressão → exportar/compartilhar PDF; modal → bottom sheet/sheet nativo — `vault/04 - Mobile/Decisões UX Web → Mobile.md`
+- [x] Confirmar a decisão de arquitetura (KMP) e definir estrutura de repositório — `vault/04 - Mobile/ADR-001...` e `Estrutura do Repositório Mobile.md`
+- [x] Tokens visuais e escopo do MVP documentados — `vault/04 - Mobile/Tokens Visuais.md`, `Escopo do MVP Mobile.md`
+- [x] Nome do app definido: **"Calc TAF"** (neutro)
+- [ ] Bundle ID — adiado para a Fase 2
 
-### 2. Setup (2-3 dias)
-- [ ] Fazer um teste rápido (spike) de KMP: projeto mínimo gerando `.xcframework` consumível pelo Xcode, **antes** de seguir com o plano todo
-- [ ] Criar módulo `shared` + apps `androidApp` (Compose) e `iosApp` (SwiftUI)
-- [ ] Configurar CI (build shared + android + ios)
+### 2. Setup (2-3 dias) — arquivos gerados, build não verificado nesta máquina
+- [x] Módulo `shared` (KMP) + `androidApp` (Compose) criados; stubs Swift para `iosApp`
+- [x] CI configurado (`.github/workflows/mobile-ci.yml`)
+- [ ] **Spike de validação real (compilar de fato)** — bloqueado nesta máquina: falta JDK 17+ e Android SDK; Xcode é impossível em Windows. Ver `mobile/SETUP.md` para os passos (idealmente: abrir `mobile/` no Android Studio)
 
 ### 3. Migrar a lógica de negócio (5-7 dias) — a fase mais crítica
 - [ ] Transcrever as 9 tabelas de `taf-data.ts` para Kotlin (`shared`)
