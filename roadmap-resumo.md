@@ -33,10 +33,10 @@ D e E podem rodar em paralelo se houver 2 devs.
 - [x] Nome do app definido: **"Calc TAF"** (neutro)
 - [ ] Bundle ID — adiado para a Fase 2
 
-### 2. Setup (2-3 dias) — arquivos gerados, build não verificado nesta máquina
+### 2. Setup (2-3 dias) — ✅ concluída e validada (Android/shared)
 - [x] Módulo `shared` (KMP) + `androidApp` (Compose) criados; stubs Swift para `iosApp`
-- [x] CI configurado (`.github/workflows/mobile-ci.yml`)
-- [ ] **Spike de validação real (compilar de fato)** — bloqueado nesta máquina: falta JDK 17+ e Android SDK; Xcode é impossível em Windows. Ver `mobile/SETUP.md` para os passos (idealmente: abrir `mobile/` no Android Studio)
+- [x] CI configurado (`.github/workflows/mobile-ci.yml`), agora usando `./gradlew`
+- [x] **Spike de validação real — confirmado em 2026-08-30:** `:shared:jvmTest` passou e `:androidApp:assembleDebug` gerou um APK real, depois de instalar o Android Studio. Precisou subir Gradle/AGP/Kotlin bem além do previsto por causa do JDK 25 do Android Studio — detalhes em `mobile/SETUP.md`. iOS segue pendente (só via CI/macOS)
 
 ### 3. Migrar a lógica de negócio (5-7 dias) — a fase mais crítica
 - [ ] Transcrever as 9 tabelas de `taf-data.ts` para Kotlin (`shared`)

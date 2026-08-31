@@ -38,9 +38,9 @@ Ver [[ADR-001 KMP vs Codebases Separadas]].
 - [x] Stubs Swift para o app iOS (sem projeto Xcode real — impossível gerar/verificar em Windows, ver `mobile/iosApp/README.md`)
 - [x] CI (GitHub Actions) configurado: 3 jobs (shared/Android/iOS-framework) — `.github/workflows/mobile-ci.yml`
 - [x] Convenção de versionamento e branches — [[Convenções de Versionamento e Branches]]
-- [~] **Spike de validação do KMP** — os arquivos foram gerados, mas **não foram compilados nesta máquina** (sem JDK 17+, sem Android SDK; Xcode impossível em Windows). O spike real (build de fato) só acontece quando alguém abrir `mobile/` no Android Studio ou rodar os comandos em `mobile/SETUP.md`. Isso é uma limitação de ambiente conhecida, não um item pulado.
+- [x] **Spike de validação do KMP — validado de verdade em 2026-08-30.** Depois que o Android Studio foi instalado nesta máquina, `:shared:jvmTest` (1 teste, passou) e `:androidApp:assembleDebug` (gerou o APK) rodaram com sucesso via `./gradlew`. Precisou subir as versões (Gradle 9.7.1, AGP 9.3.2, Kotlin 2.4.10, compileSdk 37) por causa do JDK 25 embutido no Android Studio atual — detalhes de cada ajuste em `mobile/SETUP.md`. iOS continua não verificável nesta máquina (Windows).
 
-**Fase 2 preparada, mas com verificação pendente** — ver `mobile/SETUP.md` para o que falta e por quê. Próximo passo: Fase 3 (Migração da Lógica de Negócio, com TDD).
+**Fase 2 concluída e validada (Android/shared).** iOS validado só via CI (macOS), ainda não confirmado. Próximo passo: Fase 3 (Migração da Lógica de Negócio, com TDD).
 
 ## Como isso se conecta ao resto do vault
 

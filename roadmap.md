@@ -83,7 +83,7 @@ A UI **não** será compartilhada (sem Compose Multiplatform para iOS): o app de
 
 **Estimativa: 2-3 dias | Dependências: Fase 1**
 
-- [~] **Spike de validação:** projeto KMP mínimo criado (`mobile/shared`) com alvos Android/iOS/JVM — mas **não compilado nesta máquina** (sem JDK 17+, sem Android SDK; Xcode é impossível em Windows). Arquivos prontos para a primeira sincronização real; ver `mobile/SETUP.md`
+- [x] **Spike de validação — confirmado em 2026-08-30:** `:shared:jvmTest` (passou) e `:androidApp:assembleDebug` (gerou APK) rodaram de verdade nesta máquina via `./gradlew`, depois que o Android Studio foi instalado. Precisou subir versões (Gradle 9.7.1, AGP 9.3.2, Kotlin 2.4.10, compileSdk 37) por causa do JDK 25 embutido no Android Studio — motivo de cada ajuste documentado em `mobile/SETUP.md`. iOS segue não verificável em Windows (só via CI/macOS)
 - [x] Módulo `shared` criado com source sets `commonMain`/`commonTest` (vazio de lógica de propósito — a lógica real é Fase 3), alvos `jvm()` (testes rápidos), `androidTarget()`, `iosX64`/`iosArm64`/`iosSimulatorArm64`
 - [x] Módulo `androidApp` configurado: Kotlin, Jetpack Compose, Compose Material 3, dependência em `:shared`, tema com os tokens de `vault/04 - Mobile/Tokens Visuais.md`
 - [x] Stubs Swift de referência para o `iosApp` (`CalcTAFApp.swift`, `ContentView.swift`, tokens de cor) — **projeto Xcode real ainda não existe**, só pode ser criado em macOS; passos documentados em `mobile/iosApp/README.md`
@@ -92,7 +92,7 @@ A UI **não** será compartilhada (sem Compose Multiplatform para iOS): o app de
 - [x] Convenção de versionamento semântico e estratégia de branches — `vault/04 - Mobile/Convenções de Versionamento e Branches.md`
 - [x] Tokens de design como constantes compartilháveis conceitualmente — já documentado em `vault/04 - Mobile/Tokens Visuais.md` (Fase 1) e agora também implementado como `Color.kt`/`Theme.kt` (Android) e `Colors.swift` (iOS)
 
-**Fase 2 com arquivos gerados, verificação de build pendente** (ver `mobile/SETUP.md`). Próxima fase: 3 — Migração da Lógica de Negócio (TDD obrigatório, ver `CLAUDE.md`).
+**Fase 2 concluída e validada para Android/shared** (ver `mobile/SETUP.md`). iOS ainda depende de CI/macOS para confirmação. Próxima fase: 3 — Migração da Lógica de Negócio (TDD obrigatório, ver `CLAUDE.md`).
 
 ---
 

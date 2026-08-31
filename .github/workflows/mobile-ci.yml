@@ -1,8 +1,9 @@
 name: Mobile CI
 
 # Builda/testa os projetos em mobile/ (módulo shared KMP, app Android, framework iOS).
-# Usa gradle/actions/setup-gradle, que provisiona o Gradle diretamente — não depende
-# do gradle-wrapper.jar (binário, não versionado neste repo; ver mobile/SETUP.md).
+# Usa o wrapper do próprio projeto (./gradlew), validado nesta config em 2026-08-30
+# (Gradle 9.7.1 + AGP 9.3.2 + Kotlin 2.4.10 — ver mobile/SETUP.md para o porquê
+# dessas versões específicas, incluindo os ajustes feitos por causa do AGP 9).
 
 on:
   push:
@@ -23,11 +24,12 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Rodar testes do módulo shared (JVM)
-        run: gradle -p mobile :shared:jvmTest
+        working-directory: mobile
+        run: ./gradlew :shared:jvmTest
 
   android:
     name: Android (build debug)
@@ -38,11 +40,12 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Build APK debug
-        run: gradle -p mobile :androidApp:assembleDebug
+        working-directory: mobile
+        run: ./gradlew :androidApp:assembleDebug
 
   ios-framework:
     name: iOS (build do XCFramework shared)
@@ -53,9 +56,13 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Build do XCFramework do shared
-        run: gradle -p mobile :shared:assembleSharedDebugXCFramework
+        working-directory: mobile
+        # Nome exato da task ainda não verificado (não roda em Windows/CI local) —
+        # se falhar, rodar `./gradlew :shared:tasks --group=build` num Mac para
+        # confirmar o nome real da task de XCFramework gerada pelo baseName "Shared".
+        run: ./gradlew :shared:assembleSharedDebugXCFramework
       # TODO (após a Fase 5): quando o projeto Xcode real existir em mobile/iosApp,
       # adicionar aqui um passo `xcodebuild` para compilar o app completo.

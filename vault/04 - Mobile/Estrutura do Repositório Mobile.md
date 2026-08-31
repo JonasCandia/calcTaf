@@ -47,4 +47,4 @@ calcTaf/                      # raiz do repositório atual (web + mobile convive
 
 ## Estado real do scaffolding (Fase 2)
 
-Os arquivos acima já existem em `mobile/` (Gradle, módulo `shared` com um placeholder de fumaça, app Android mínimo em Compose, stubs Swift para iOS). **Não foram compilados/testados nesta máquina** — sem JDK 17+, sem Android SDK, e Xcode é impossível em Windows. Ver `mobile/SETUP.md` para o que falta e como validar.
+Os arquivos acima existem em `mobile/` e, desde 2026-08-30, **estão compilando de verdade**: `:shared:jvmTest` passa e `:androidApp:assembleDebug` gera um APK real, usando o Android Studio instalado nesta máquina + o wrapper do próprio projeto (`./gradlew`). Precisou subir bastante as versões previstas originalmente (Gradle 9.7.1, AGP 9.3.2, Kotlin 2.4.10) por causa do JDK 25 do Android Studio atual — detalhes completos e o motivo de cada ajuste em `mobile/SETUP.md`. iOS continua não verificável em Windows (só via CI, ainda não confirmado).

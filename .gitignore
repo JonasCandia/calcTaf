@@ -12,6 +12,7 @@ mobile/.gradle/
 mobile/**/build/
 mobile/local.properties
 mobile/.kotlin/
+mobile/.idea/
 !mobile/gradle/wrapper/gradle-wrapper.jar
 
 # Mobile (Xcode/iOS)
