@@ -40,7 +40,17 @@ Ver [[ADR-001 KMP vs Codebases Separadas]].
 - [x] Convenção de versionamento e branches — [[Convenções de Versionamento e Branches]]
 - [x] **Spike de validação do KMP — validado de verdade em 2026-08-30.** Depois que o Android Studio foi instalado nesta máquina, `:shared:jvmTest` (1 teste, passou) e `:androidApp:assembleDebug` (gerou o APK) rodaram com sucesso via `./gradlew`. Precisou subir as versões (Gradle 9.7.1, AGP 9.3.2, Kotlin 2.4.10, compileSdk 37) por causa do JDK 25 embutido no Android Studio atual — detalhes de cada ajuste em `mobile/SETUP.md`. iOS continua não verificável nesta máquina (Windows).
 
-**Fase 2 concluída e validada (Android/shared).** iOS validado só via CI (macOS), ainda não confirmado. Próximo passo: Fase 3 (Migração da Lógica de Negócio, com TDD).
+**Fase 2 concluída e validada (Android/shared).** iOS validado só via CI (macOS), ainda não confirmado.
+
+## Andamento — Fase 3 (Migração da Lógica de Negócio)
+
+- [x] 9 tabelas oficiais transcritas para Kotlin (`TafData.kt`), validadas por golden-master test contra JSON exportado do `taf-data.ts` original
+- [x] Funções de `taf-utils.ts` portadas em `TafCalculator.kt`, cálculo de idade em `AgeCalculator.kt`
+- [x] 58 testes, TDD real (Red confirmado por compilação falhando, Green confirmado rodando `./gradlew`)
+- [x] **Bug real de indexação encontrado e corrigido** (militares 40+ sempre tirando 0 no teste de força) — corrigido no web app com TDD, validado no navegador, já portado corrigido pro Kotlin. Ver [[Regras de Negócio]]
+- [ ] `.xcframework` publicado via CI — pendente de confirmação em macOS
+
+**Fase 3 concluída em 2026-08-30** (exceto publicação do XCFramework). Próximo passo: Fase 4 — UI Android (Compose).
 
 ## Como isso se conecta ao resto do vault
 

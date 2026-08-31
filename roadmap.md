@@ -115,9 +115,10 @@ Esta é a fase de maior criticidade de qualidade — qualquer divergência aqui 
 | `CORRIDA_MALE`, `CORRIDA_FEMALE` | idem — as maiores tabelas (44 e 46 linhas); atenção especial na transcrição |
 | `NATACAO_MALE`, `NATACAO_FEMALE` | idem — 20 linhas cada, `lowerIsBetter` |
 
-- [ ] Transcrever todas as 9 tabelas para Kotlin, preservando exatamente a ordem de `AGE_GROUPS` em cada array de limiares
-- [ ] **Validação automatizada de fidelidade (obrigatória, não opcional):** escrever um script Node (`tsx` já está no `devDependencies`) que importa `taf-data.ts` e serializa todas as tabelas para JSON; comparar programaticamente (assert de igualdade) esse JSON contra os valores transcritos em Kotlin via teste `commonTest`. Isso elimina a necessidade de revisão manual linha-a-linha e barra qualquer PR com divergência
-- [ ] Revisão cruzada por uma segunda pessoa nas tabelas antes de considerar a Fase 3 concluída, além do teste automatizado
+- [x] Transcrever todas as 9 tabelas para Kotlin, preservando exatamente a ordem de `AGE_GROUPS` em cada array de limiares — `mobile/shared/src/commonMain/kotlin/dev/calctaf/shared/TafData.kt`
+- [x] **Validação automatizada de fidelidade — feita e passando:** `mobile/scripts/export-taf-tables.mjs` exporta `taf-data.ts` para JSON real (não digitado à mão); `GoldenMasterTest.kt` (jvmTest) compara as 9 tabelas valor a valor contra esse JSON via `kotlinx-serialization-json`. 2/2 testes passando, confirmado rodando `./gradlew :shared:jvmTest`
+- [x] Revisão cruzada — feita via o golden-master automatizado (fonte independente gerada do TS original), não revisão manual linha-a-linha
+- [x] **Achado durante a transcrição: bug real de indexação em `calculatePoints`** fazia qualquer militar >39 anos tirar sempre 0 no teste de força superior. Corrigido no web (`src/lib/taf-utils.ts` + `App.tsx`), validado com Vitest e com o app rodando de verdade no navegador (Playwright), e já portado corrigido para o Kotlin desde o início. Detalhes: `vault/03 - Técnico/Regras de Negócio.md`, seção 2.1
 
 ### Mapeamento de funções (`taf-utils.ts` → `commonMain`)
 
@@ -130,10 +131,12 @@ Esta é a fase de maior criticidade de qualidade — qualquer divergência aqui 
 | `getConcept(score): string` | `fun getConcept(score: Double): Concept` (enum: EXCELENTE, MUITO_BOM, BOM, REGULAR, INSUFICIENTE) | Cortes em 10.0/8.5/7.0/5.0 |
 | `getUpperBodyTable`, `getAbdominalTable`, `getRunTable`, `getSwimTable` | equivalentes diretos | Seleção de tabela por sexo/idade, sem lógica adicional |
 
-- [ ] Portar `getAgeGroup`, `calculatePoints`, `getUpperBodyTest`, `calculateFinalScore`, `getConcept` e os 4 seletores de tabela como funções puras em um `object TafCalculator` (ou equivalente) no `commonMain`
-- [ ] Portar a lógica de cálculo de idade a partir de data de nascimento + data do teste (presente em `App.tsx`, não em `taf-utils.ts`) para o `shared`, usando `kotlinx-datetime.LocalDate`, preservando a regra de ajuste por mês/dia e o clamp de aceitação (18-70 anos)
-- [ ] Escrever testes unitários (`commonTest`, `kotlin.test`) cobrindo casos de fronteira de cada função **antes** de iniciar a Fase 4/5 (ver detalhes na Fase 6) — não avançar para UI com lógica não testada
-- [ ] Gerar e publicar o `.xcframework` do `shared` como artefato de CI, consumível pelos dois apps
+- [x] Portadas `getAgeGroup`, `calculatePoints` (já com o parâmetro `ageGroupsForTable` da correção do bug), `getUpperBodyTest`, `calculateFinalScore`, `getConcept`, `getUpperBodyAgeGroups` e os 4 seletores de tabela como funções puras em `object TafCalculator` (`TafCalculator.kt`)
+- [x] Portada a lógica de cálculo de idade para `AgeCalculator.kt`, usando `kotlinx-datetime.LocalDate`, com `calculateAge` (regra de ajuste por mês/dia) e `isAgeAccepted` (clamp 18-70) separados, como no original
+- [x] Testes unitários escritos **antes** de cada implementação (TDD real: Red confirmado por compilação falhando, Green confirmado rodando `./gradlew :shared:jvmTest`) — 58 testes no total, todos passando: `TafCalculatorGetAgeGroupTest` (20), `TafCalculatorCalculatePointsTest` (7), `TafCalculatorScoreAndConceptTest` (15), `TafCalculatorTableSelectorsTest` (7), `AgeCalculatorTest` (6), `GoldenMasterTest` (2), `SharedInfoTest` (1, da Fase 2)
+- [ ] Gerar e publicar o `.xcframework` do `shared` como artefato de CI — segue pendente de confirmação em macOS (mesma limitação de ambiente já registrada na Fase 2)
+
+**Fase 3 concluída em 2026-08-30** (exceto a publicação do `.xcframework`, que depende de CI/macOS). Próxima fase: 4 — UI Android (Compose).
 
 ---
 

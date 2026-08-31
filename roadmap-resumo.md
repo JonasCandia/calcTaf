@@ -38,12 +38,12 @@ D e E podem rodar em paralelo se houver 2 devs.
 - [x] CI configurado (`.github/workflows/mobile-ci.yml`), agora usando `./gradlew`
 - [x] **Spike de validação real — confirmado em 2026-08-30:** `:shared:jvmTest` passou e `:androidApp:assembleDebug` gerou um APK real, depois de instalar o Android Studio. Precisou subir Gradle/AGP/Kotlin bem além do previsto por causa do JDK 25 do Android Studio — detalhes em `mobile/SETUP.md`. iOS segue pendente (só via CI/macOS)
 
-### 3. Migrar a lógica de negócio (5-7 dias) — a fase mais crítica
-- [ ] Transcrever as 9 tabelas de `taf-data.ts` para Kotlin (`shared`)
-- [ ] **Obrigatório:** script que compara automaticamente as tabelas Kotlin contra o `taf-data.ts` original (golden-master test) — barra divergência antes de virar bug em produção
-- [ ] Portar as funções de `taf-utils.ts`: `getAgeGroup`, `calculatePoints`, `getUpperBodyTest`/`Table`, `calculateFinalScore`, `getConcept`
-- [ ] Portar o cálculo de idade a partir de nascimento + data do teste
-- [ ] Escrever testes unitários de tudo isso **antes** de começar a UI
+### 3. Migrar a lógica de negócio (5-7 dias) — ✅ concluída, validada, e achou um bug real
+- [x] 9 tabelas transcritas para Kotlin (`TafData.kt`)
+- [x] Golden-master test rodando e passando (2/2) — compara contra JSON exportado do `taf-data.ts` original
+- [x] Funções de `taf-utils.ts` portadas (`TafCalculator.kt`) + cálculo de idade (`AgeCalculator.kt`)
+- [x] 58 testes escritos **antes** de cada implementação (TDD real, Red confirmado antes de cada Green) — todos passando
+- [x] **Bug real encontrado e corrigido:** militares 40+ sempre tiravam 0 no teste de força superior (Apoio Solo/Joelhos) por um erro de indexação em `calculatePoints`. Corrigido no web com TDD (Vitest, configurado agora pela primeira vez) e validado rodando o app de verdade no navegador — não só nos testes. Kotlin já nasceu com a versão corrigida. Detalhes: `vault/03 - Técnico/Regras de Negócio.md`
 
 ### 4. UI Android — Compose (8-10 dias)
 - [ ] Telas: formulário (identificação + testes), card de resultado, modal de tabelas de referência

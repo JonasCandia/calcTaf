@@ -44,19 +44,20 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { 
-  Sex, 
-  getAgeGroup, 
-  calculatePoints, 
-  getUpperBodyTest, 
-  calculateFinalScore, 
+import {
+  Sex,
+  getAgeGroup,
+  calculatePoints,
+  getUpperBodyTest,
+  calculateFinalScore,
   getConcept,
   getUpperBodyTable,
+  getUpperBodyAgeGroups,
   getAbdominalTable,
   getRunTable,
   getSwimTable
 } from './lib/taf-utils';
-import { AGE_GROUPS, ScoringTable } from './constants/taf-data';
+import { AGE_GROUPS, AgeGroup, ScoringTable } from './constants/taf-data';
 
 const EASE_OUT_QUINT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -177,7 +178,7 @@ export default function App() {
 
     if (Object.keys(errors).length > 0) return;
 
-    const ubPoints = calculatePoints(ubVal, ageGroup, getUpperBodyTable(sex, age));
+    const ubPoints = calculatePoints(ubVal, ageGroup, getUpperBodyTable(sex, age), false, getUpperBodyAgeGroups(age));
     const abdPoints = calculatePoints(abdVal, ageGroup, getAbdominalTable(sex));
     const runPoints = calculatePoints(runVal, ageGroup, getRunTable(sex));
     const swPoints = swVal !== undefined ? calculatePoints(swVal, ageGroup, getSwimTable(sex), true) : undefined;
@@ -677,11 +678,12 @@ export default function App() {
               
               <div className="nm-inset p-1 rounded-2xl overflow-hidden">
                 <TabsContent value="upperBody" className="m-0 bg-[var(--surface)] rounded-xl p-4">
-                  <ScoringTableDisplay 
+                  <ScoringTableDisplay
                     title={upperBodyTestLabel}
                     table={getUpperBodyTable(sex, age)}
                     currentPoints={results?.upperBody ?? 0}
                     ageGroup={ageGroup}
+                    ageGroups={getUpperBodyAgeGroups(age)}
                   />
                 </TabsContent>
                 
@@ -721,21 +723,26 @@ export default function App() {
   );
 }
 
-const ScoringTableDisplay = memo(function ScoringTableDisplay({ 
-  title, 
-  table, 
-  currentPoints, 
+const ScoringTableDisplay = memo(function ScoringTableDisplay({
+  title,
+  table,
+  currentPoints,
   ageGroup,
+  ageGroups = AGE_GROUPS,
   lowerIsBetter = false
-}: { 
-  title: string; 
-  table: ScoringTable; 
+}: {
+  title: string;
+  table: ScoringTable;
   currentPoints: number;
   ageGroup: string;
+  ageGroups?: AgeGroup[];
   lowerIsBetter?: boolean;
 }) {
   const points = Object.keys(table).map(Number).sort((a, b) => b - a);
-  const ageIndex = AGE_GROUPS.indexOf(ageGroup as any);
+  // ageGroups é a fatia de AGE_GROUPS que essa tabela realmente cobre (ver
+  // getUpperBodyAgeGroups em taf-utils.ts) — Força Sup. só tem 5 colunas,
+  // as outras modalidades cobrem as 10 faixas.
+  const ageIndex = ageGroups.indexOf(ageGroup as AgeGroup);
 
   return (
     <div className="space-y-4">
@@ -744,7 +751,7 @@ const ScoringTableDisplay = memo(function ScoringTableDisplay({
           <TableHeader>
             <TableRow className="border-none hover:bg-transparent sticky top-0 z-10 bg-[var(--surface)]">
               <TableHead className="w-16 sm:w-20 technical-header sticky left-0 z-20 bg-[var(--surface)] shadow-[1px_0_0_0_rgba(255,255,255,0.08)]">Pts</TableHead>
-              {AGE_GROUPS.map((group) => (
+              {ageGroups.map((group) => (
                 <TableHead 
                   key={group} 
                   className={`text-center technical-header min-w-[52px] sm:min-w-[70px] ${group === ageGroup ? 'text-[var(--primary)] font-black bg-[var(--primary)]/5' : ''}`}

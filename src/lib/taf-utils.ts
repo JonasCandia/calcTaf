@@ -31,12 +31,13 @@ export function getAgeGroup(age: number): AgeGroup {
 }
 
 export function calculatePoints(
-  value: number, 
-  ageGroup: AgeGroup, 
-  table: ScoringTable, 
-  lowerIsBetter: boolean = false
+  value: number,
+  ageGroup: AgeGroup,
+  table: ScoringTable,
+  lowerIsBetter: boolean = false,
+  ageGroupsForTable: AgeGroup[] = AGE_GROUPS
 ): number {
-  const ageIndex = AGE_GROUPS.indexOf(ageGroup);
+  const ageIndex = ageGroupsForTable.indexOf(ageGroup);
   const sortedPoints = Object.keys(table)
     .map(Number)
     .sort((a, b) => b - a); // Sort points descending (10.0 to 0.5)
@@ -89,6 +90,16 @@ export function getUpperBodyTable(sex: Sex, age: number): ScoringTable {
   } else {
     return age <= 39 ? BARRA_ISOMETRICA_FEMALE : APOIO_JOELHOS_FEMALE;
   }
+}
+
+// BARRA_MALE/BARRA_ISOMETRICA_FEMALE só têm colunas para as 5 faixas <=39;
+// APOIO_SOLO_MALE/APOIO_JOELHOS_FEMALE só têm colunas para as 5 faixas >39
+// (ver página 39 da IR 001/2024, formatada em dois blocos de 5 colunas).
+// calculatePoints precisa da fatia de AGE_GROUPS correta para indexar essas
+// tabelas — sem isso, o índice global (5-9 para idade > 39) estoura o array
+// de 5 posições e a pontuação some (bug corrigido em 2026-08-30).
+export function getUpperBodyAgeGroups(age: number): AgeGroup[] {
+  return age <= 39 ? AGE_GROUPS.slice(0, 5) : AGE_GROUPS.slice(5);
 }
 
 export function getAbdominalTable(sex: Sex): ScoringTable {

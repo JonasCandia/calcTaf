@@ -1,6 +1,7 @@
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
+    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -31,9 +32,22 @@ kotlin {
     }
 
     sourceSets {
+        getByName("commonMain") {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
+            }
+        }
         getByName("commonTest") {
             dependencies {
                 implementation(kotlin("test"))
+            }
+        }
+        // kotlinx-serialization-json só é usado para o golden-master test
+        // (lê o JSON exportado de taf-data.ts) — dependência só de teste,
+        // não entra no commonMain/produção.
+        getByName("jvmTest") {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             }
         }
     }
